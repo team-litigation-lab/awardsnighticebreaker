@@ -1,0 +1,704 @@
+<meta charset="utf-8">
+<title>VA Life Bingo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;600;700&family=Pinyon+Script&family=Mulish:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: a masquerade ballroom at night. Masthead, then one view at a time:
+   the Card Wall (face-down masked cards), My Card, Host stage, How to play. */
+:root{
+  --night:#150923; --velvet:#221038; --plum:#341755; --plum-hi:#4a2276;
+  --line:rgba(217,180,90,.32); --line-hi:rgba(244,221,155,.7);
+  --gold:#d9b45a; --gold-hi:#f4dd9b; --gold-lo:#9c7a2e;
+  --ink:#f6eddc; --muted:#bba9d3; --dim:#7f6c99;
+  --holly:#2f8f5b; --berry:#c8374a;
+  --f-display:"Cinzel Decorative","Cinzel",Georgia,serif;
+  --f-head:"Cinzel",Georgia,"Times New Roman",serif;
+  --f-script:"Pinyon Script","Snell Roundhand","Apple Chancery",cursive;
+  --f-body:"Mulish",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{
+  background:radial-gradient(120% 60% at 50% 0%,#3a1663 0%,var(--night) 60%) fixed,var(--night);
+  color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 48px;
+}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+
+/* Masthead */
+.mast{text-align:center;padding-block:28px 10px}
+.eyebrow{font-family:var(--f-head);font-weight:600;letter-spacing:.22em;text-transform:uppercase;font-size:12px;color:var(--gold)}
+h1{font-family:var(--f-display);font-weight:900;margin:2px 0 0;font-size:clamp(38px,8vw,72px);line-height:1;letter-spacing:.02em;
+  background:linear-gradient(180deg,var(--gold-hi) 15%,var(--gold) 55%,var(--gold-lo) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-wrap:balance}
+.script{font-family:var(--f-script);font-size:clamp(28px,5vw,40px);color:var(--ink);line-height:1.1;margin-top:-2px}
+.script small{display:block;font-family:var(--f-head);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px 0 6px}
+nav a{font-family:var(--f-head);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;color:var(--muted);
+  border:1px solid var(--line);padding:8px 16px;border-radius:999px;background:rgba(34,16,56,.6)}
+nav a[aria-current="page"]{color:var(--night);background:linear-gradient(180deg,var(--gold-hi),var(--gold));border-color:var(--gold)}
+
+.notice{margin:10px auto 0;max-width:720px;text-align:center;font-size:13px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
+.notice:empty{display:none}
+.banner{margin:14px auto 0;max-width:720px;text-align:center;padding:12px 16px;border-radius:12px;
+  background:linear-gradient(90deg,rgba(200,55,74,.25),rgba(217,180,90,.22),rgba(47,143,91,.25));border:1px solid var(--line-hi)}
+.banner .k{font-family:var(--f-head);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.banner .v{font-family:var(--f-head);font-weight:700;font-size:20px}
+
+main{margin-top:22px}
+.panel{background:linear-gradient(180deg,rgba(52,23,85,.72),rgba(34,16,56,.85));border:1px solid var(--line);border-radius:16px;padding:20px}
+.panel+.panel{margin-top:16px}
+h2{font-family:var(--f-head);font-weight:700;font-size:20px;margin:0 0 4px;color:var(--gold-hi);letter-spacing:.04em;text-wrap:balance}
+h3{font-family:var(--f-head);font-weight:700;font-size:15px;margin:0 0 8px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+.sub{color:var(--muted);margin:0 0 14px;max-width:65ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.spacer{flex:1}
+
+.btn{font-family:var(--f-head);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-radius:10px;padding:10px 16px;
+  border:1px solid var(--gold);background:transparent;color:var(--gold-hi)}
+.btn.primary{background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#1b0c2c;border-color:var(--gold-hi)}
+.btn.big{font-size:16px;padding:14px 24px}
+.btn.danger{border-color:var(--berry);color:#ffb3bd}
+.btn.armed{background:var(--berry);color:#fff;border-color:var(--berry)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+
+/* Card wall */
+.wallhead{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between;margin-bottom:16px}
+.count{font-family:var(--f-head);font-size:13px;letter-spacing:.08em;color:var(--muted)}
+.count b{color:var(--gold-hi);font-size:18px}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
+.mcard{position:relative;aspect-ratio:3/4;max-width:100%;border-radius:12px;border:1px solid var(--line);padding:0;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(244,221,155,.16),transparent 55%),
+    repeating-linear-gradient(45deg,rgba(217,180,90,.06) 0 2px,transparent 2px 9px),
+    linear-gradient(160deg,var(--plum-hi),var(--velvet) 70%);
+  box-shadow:inset 0 0 0 4px rgba(21,9,35,.55),inset 0 0 0 5px var(--line);
+  transition:transform .25s ease,box-shadow .25s ease;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.mcard svg{width:78%;height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.mcard .no{font-family:var(--f-head);font-weight:700;font-size:12px;letter-spacing:.14em;color:var(--gold-hi)}
+.mcard:not(:disabled):hover{transform:translateY(-4px) rotate(var(--tilt,0deg));box-shadow:inset 0 0 0 4px rgba(21,9,35,.55),inset 0 0 0 5px var(--line-hi),0 10px 24px rgba(0,0,0,.45)}
+.mcard.taken{cursor:default;filter:saturate(.25) brightness(.7)}
+.mcard.taken .who,.mcard.mine .who{position:absolute;left:6px;right:6px;bottom:8px;font-size:11px;font-weight:700;line-height:1.2;
+  background:rgba(21,9,35,.85);border:1px solid var(--line);border-radius:6px;padding:3px 4px;color:var(--ink);overflow-wrap:anywhere}
+.mcard.mine{filter:none;box-shadow:inset 0 0 0 4px rgba(21,9,35,.55),0 0 0 2px var(--gold-hi),0 0 22px rgba(244,221,155,.35)}
+.mcard.mine .who{background:var(--gold);color:#1b0c2c;border-color:var(--gold-hi)}
+.mcard.taken .no,.mcard.mine .no{margin-bottom:22px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:14px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--line)}
+
+/* Claim dialog */
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,4,18,.78);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.dialog{width:100%;max-width:420px;text-align:center;background:linear-gradient(180deg,var(--plum),var(--velvet));border:1px solid var(--line-hi);border-radius:18px;padding:22px}
+.dialog .mcard{width:150px;margin:0 auto 14px;cursor:default}
+.dialog .mcard.flip{animation:flip .9s ease both}
+@keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.05)}100%{transform:rotateY(0)}}
+label{display:block;text-align:left;font-family:var(--f-head);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:6px 0}
+input[type=text],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--night);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+select{width:auto}
+.err{color:#ffb3bd;font-size:13px;min-height:1.4em;margin:8px 0 0}
+
+/* Ball draws */
+.draws{display:flex;gap:18px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:18px;padding:16px 18px;background:rgba(21,9,35,.6);margin-bottom:18px}
+.ball{flex:none;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;align-content:center;gap:0;color:#1b0c2c;
+  background:radial-gradient(circle at 34% 28%,#fff8de 0 10%,var(--gold-hi) 30%,var(--gold) 62%,var(--gold-lo) 100%);
+  box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 -6px 12px rgba(80,50,10,.35)}
+.ball svg{width:34px;height:34px;stroke-width:2}
+.ball b{font-family:var(--f-head);font-weight:700;font-size:13px;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.ball.empty{background:radial-gradient(circle at 34% 28%,#6a3c9a,var(--plum) 60%,var(--velvet));color:var(--muted)}
+.ball.sm{width:44px;height:44px;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.ball.sm svg{width:18px;height:18px}
+.ball.xl{width:150px;height:150px;margin:0 auto}
+.ball.xl svg{width:56px;height:56px}
+.ball.xl b{font-size:18px}
+.draws .txt{flex:1;min-width:0}
+@media (max-width:520px){.draws{flex-wrap:nowrap;gap:12px;padding:12px}.draws>.ball{width:72px;height:72px}.draws>.ball svg{width:26px;height:26px}.ball.sm{width:34px;height:34px}.ball.sm svg{width:14px;height:14px}.ball.sm b{font-size:10px}}
+.draws .k{font-family:var(--f-head);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.draws .t{font-family:var(--f-head);font-weight:700;font-size:clamp(18px,3vw,26px);line-height:1.2;text-wrap:balance}
+.draws .dd{color:var(--muted);font-size:15px}
+.recent{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.recent span{font-size:11px;color:var(--dim);font-family:var(--f-head);letter-spacing:.12em;text-transform:uppercase}
+body.focus .mast{padding-block:14px 0}
+body.focus .eyebrow,body.focus .script,body.focus footer{display:none}
+body.focus h1{font-size:clamp(28px,5vw,40px)}
+body.focus main{margin-top:14px}
+/* Calling strip */
+.calling{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px 16px;background:rgba(21,9,35,.6);margin-bottom:16px}
+.calling .n{font-family:var(--f-display);font-weight:900;font-size:28px;color:var(--gold-hi);min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.calling .k{font-family:var(--f-head);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.calling .t{font-family:var(--f-head);font-weight:700;font-size:17px;line-height:1.25}
+.reveal{animation:reveal .7s ease}
+@keyframes reveal{0%{opacity:0;transform:translateY(8px) scale(.97);filter:blur(4px)}100%{opacity:1;transform:none;filter:none}}
+
+/* Bingo card */
+.cardwrap{max-width:900px;margin:0 auto}
+.ribbon{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ribbon .name{font-family:var(--f-script);font-size:34px;line-height:1}
+.ribbon .no{font-family:var(--f-head);font-weight:700;letter-spacing:.14em;color:var(--gold)}
+.bingo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px;border-radius:16px;border:2px solid var(--gold);
+  background:linear-gradient(180deg,rgba(74,34,118,.6),rgba(21,9,35,.85));box-shadow:0 0 0 5px rgba(21,9,35,.7),0 0 0 6px var(--line)}
+.bingo .hd{font-family:var(--f-display);font-weight:900;text-align:center;font-size:clamp(24px,6vw,48px);color:var(--gold-hi);padding-block:2px 4px}
+.cell{position:relative;aspect-ratio:1;max-width:100%;border-radius:8px;border:1px solid var(--line);background:rgba(36,16,62,.9);padding:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;min-width:0;overflow:hidden}
+.cell .t{font-weight:700;font-size:clamp(9px,1.75vw,15px);line-height:1.15;overflow-wrap:anywhere}
+.cell .ic{width:clamp(16px,3.6vw,34px);height:clamp(16px,3.6vw,34px);color:var(--gold-hi);stroke-width:1.75;flex:none}
+.cell.marked .ic{color:#fff}
+.cell .d{font-size:clamp(8px,1.3vw,12px);line-height:1.15;color:var(--muted)}
+.cell.called{border-color:var(--gold);box-shadow:inset 0 0 0 1px rgba(244,221,155,.35)}
+.cell.marked{background:radial-gradient(circle at 50% 50%,rgba(200,55,74,.95) 0 30%,rgba(140,30,48,.95) 70%);border-color:var(--gold-hi)}
+.cell.marked .d{color:#f7d7dc}
+.cell.marked::after{content:"";position:absolute;inset:5px;border-radius:50%;border:2px dashed rgba(244,221,155,.55);pointer-events:none}
+.cell.free{background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#1b0c2c;border-color:var(--gold-hi)}
+.cell.free svg{width:72%;height:auto}
+.cell.free .t{font-family:var(--f-head);letter-spacing:.1em}
+.cell.win{outline:3px solid var(--gold-hi);outline-offset:-3px}
+.cell.nope{animation:nope .35s}
+@keyframes nope{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (max-width:520px){.cell .d{display:none}.bingo{gap:4px;padding:6px}}
+.bingobar{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:18px;text-align:center}
+.bingo-btn{font-family:var(--f-display);font-weight:900;font-size:28px;letter-spacing:.06em;padding:12px 40px;border-radius:999px;border:2px solid var(--gold-hi);
+  background:linear-gradient(180deg,#e2546a,var(--berry));color:#fff}
+.bingo-btn:disabled{background:transparent;color:var(--dim);border-color:var(--line);cursor:not-allowed}
+.status{color:var(--muted);font-size:14px;max-width:52ch}
+details{margin-top:16px}
+summary{cursor:pointer;font-family:var(--f-head);font-weight:600;letter-spacing:.08em;color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);background:rgba(21,9,35,.5)}
+.chip.on{color:#1b0c2c;background:var(--gold);border-color:var(--gold-hi);font-weight:700}
+.chip .i{font-variant-numeric:tabular-nums;opacity:.7;margin-right:4px}
+
+/* Host */
+.stage{text-align:center;padding:26px 18px}
+.stage .k{font-family:var(--f-head);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+.stage .big{font-family:var(--f-head);font-weight:700;font-size:clamp(26px,5vw,46px);line-height:1.15;margin:10px auto 4px;max-width:22ch;text-wrap:balance;color:var(--ink)}
+.stage .det{color:var(--muted);font-size:16px;min-height:1.5em}
+.stage .meta{font-family:var(--f-head);letter-spacing:.1em;color:var(--muted);font-size:13px;margin:10px 0 16px;font-variant-numeric:tabular-nums}
+.stage .row{justify-content:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;margin-top:16px}
+.grid2 .panel{margin:0}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.list li{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:rgba(21,9,35,.45);min-width:0}
+.list .nm{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.list .tag{font-family:var(--f-head);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+.list .x{margin-left:auto;font-size:11px;padding:6px 10px}
+.empty{color:var(--dim);font-size:14px;font-style:italic}
+.claim{flex-direction:column;align-items:stretch!important}
+.claimtop{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.verdict{font-family:var(--f-head);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+.verdict.ok{background:var(--holly);color:#fff}.verdict.bad{background:var(--berry);color:#fff}
+.mini{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;width:100%;max-width:280px;margin:8px 0}
+.mini span .ic{display:none}
+.mini span{aspect-ratio:1;border-radius:4px;border:1px solid var(--line);font-size:8.5px;line-height:1.05;padding:2px;overflow:hidden;color:var(--muted);background:rgba(36,16,62,.9)}
+.mini span.c{border-color:var(--gold)}
+.mini span.m{background:var(--berry);color:#fff}
+.mini span.f{background:var(--gold);color:#1b0c2c}
+.mini span.w{outline:2px solid var(--gold-hi);outline-offset:-2px}
+.raffle-name{font-family:var(--f-script);font-size:40px;color:var(--gold-hi);min-height:1.3em;text-align:center}
+
+/* How to play */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:14px;list-style:none;padding:0;margin:0;counter-reset:s}
+.steps li{counter-increment:s;border:1px solid var(--line);border-radius:12px;padding:14px;background:rgba(21,9,35,.45)}
+.steps li::before{content:counter(s);display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#1b0c2c;font-family:var(--f-head);font-weight:700;margin-bottom:8px}
+.patterns{display:flex;flex-wrap:wrap;gap:22px;margin-top:10px}
+.pat{text-align:center;font-size:12px;color:var(--muted)}
+.pat .g{display:grid;grid-template-columns:repeat(5,12px);gap:3px;margin-bottom:6px}
+.pat .g i{width:12px;height:12px;border-radius:2px;border:1px solid var(--line)}
+.pat .g i.on{background:var(--berry);border-color:var(--gold)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:var(--plum);border:1px solid var(--line-hi);
+  color:var(--ink);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);text-align:center}
+footer{text-align:center;margin-top:30px;font-family:var(--f-script);font-size:24px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mask" viewBox="0 0 120 80">
+      <path fill-rule="evenodd" d="M8 40C8 22 30 14 60 26C90 14 112 22 112 40C112 58 92 66 74 56C68 52 52 52 46 56C28 66 8 58 8 40ZM26 40a12 7.5 0 1 0 24 0a12 7.5 0 1 0-24 0ZM70 40a12 7.5 0 1 0 24 0a12 7.5 0 1 0-24 0Z"/>
+    </symbol>
+    <symbol id="feather" viewBox="0 0 120 80">
+      <path d="M92 26C96 12 104 4 114 0C110 10 106 20 98 28Z"/><path d="M86 28C86 14 92 6 100 2C100 12 96 22 90 30Z" opacity=".7"/>
+    </symbol>
+  </defs>
+</svg>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">2026 LSH VA Awards Night · Year-End Celebration</div>
+    <h1>VA Life Bingo</h1>
+    <div class="script">Masquerade Edition<small>Mask your experiences · Get five in a row · Shout Bingo</small></div>
+    <nav id="nav" aria-label="Views"></nav>
+    <div class="notice" id="notice"></div>
+    <div id="banner"></div>
+  </header>
+
+  <main>
+    <section id="v-wall" hidden></section>
+    <section id="v-card" hidden></section>
+    <section id="v-host" hidden></section>
+    <section id="v-rules" hidden>
+      <div class="panel">
+        <h2>How to play</h2>
+        <p class="sub">Every card on the wall hides a different mix of VA moments behind its mask. Pick one, unmask it under your name, and play along as the host calls.</p>
+        <ol class="steps">
+          <li><b>Pick a mask.</b> Choose any open card on the Card Wall. Once it is yours, nobody else can take it.</li>
+          <li><b>Listen for the call.</b> The host calls out a VA experience, such as “Handled client calls”.</li>
+          <li><b>Mark your square.</b> Tap the matching square on your card. Only called squares can be marked.</li>
+          <li><b>Shout Bingo.</b> Five in a row (across, down, or diagonal) lights up the BINGO button. Tap it and the host checks your card.</li>
+        </ol>
+        <h3 style="margin-top:20px">Winning patterns</h3>
+        <div class="patterns" id="patterns"></div>
+      </div>
+    </section>
+  </main>
+  <footer>Mask your experiences, get five in a row, and shout Bingo!</footer>
+</div>
+
+<div class="overlay" id="claimDlg" hidden role="dialog" aria-modal="true" aria-labelledby="claimTitle">
+  <div class="dialog">
+    <div id="claimCard"></div>
+    <h2 id="claimTitle">Unmask this card?</h2>
+    <p class="sub" id="claimSub" style="margin-inline:auto"></p>
+    <form id="claimForm" autocomplete="off">
+      <label for="claimName">Your name on the card</label>
+      <input type="text" id="claimName" maxlength="40" required placeholder="First name and last initial">
+      <p class="err" id="claimErr" role="alert"></p>
+      <div class="row" style="justify-content:center;margin-top:6px">
+        <button type="button" class="btn ghost" id="claimCancel">Keep looking</button>
+        <button type="submit" class="btn primary" id="claimGo">Unmask it</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+/* ---------- Content ---------- */
+const ITEMS = [
+  ["Attended a team or client meeting",""],
+  ["Received client kudos","or positive feedback"],
+  ["Logged in and tracked time in Hubstaff",""],
+  ["Handled client calls","intake, update, or follow-up"],
+  ["Met a deadline",""],
+  ["Worked in SmartAdvocate (SA)",""],
+  ["Joined a training session or refresher",""],
+  ["Managed a calendar","consults, follow-ups, or key deadlines"],
+  ["Prepared a report or case update",""],
+  ["Used a headset for client or team calls",""],
+  ["Handled and responded to emails",""],
+  ["Helped a teammate or shared knowledge",""],
+  ["Received feedback","from a client, coach, or the team"],
+  ["Worked remotely and stayed productive",""],
+  ["Learned and applied a new skill",""],
+  ["Met a client request","or resolved a client concern"],
+  ["Requested or reviewed medical records","LOR, bills, or imaging"],
+  ["Joined a team meeting","huddle, project, or case discussion"],
+  ["Completed a key task","intake, LOR, records, or follow-up"],
+  ["Used a CMS","MyChart, Clearpath, YoCierge, or e-portal"],
+  ["Solved a work issue","or found a workaround"],
+  ["Joined a company event","town hall, event, or team activity"],
+  ["Met a performance goal","productivity, quality, or SLA"],
+  ["Celebrated a win","case milestone, client result, or team success"],
+  ["Handled an urgent client request",""],
+  ["Received a new responsibility",""],
+  ["Coordinated with a law firm team member",""],
+  ["Caught and corrected an error",""],
+  ["Adapted to a new client workflow",""]
+];
+const ICONS = ["users","star","clock","phone","calendar-check","monitor","graduation-cap","calendar-days","file-text","headset",
+  "mail","handshake","message-square-heart","laptop","lightbulb","smile","stethoscope","messages-square","clipboard-check","database",
+  "wrench","party-popper","target","trophy","siren","badge-plus","scale","search-check","refresh-cw"];
+const FREE = 12;
+const LINES = (() => { const L = [];
+  for (let r = 0; r < 5; r++) L.push([0,1,2,3,4].map(c => r*5+c));
+  for (let c = 0; c < 5; c++) L.push([0,1,2,3,4].map(r => r*5+c));
+  L.push([0,6,12,18,24],[4,8,12,16,20]); return L; })();
+const MASK_COLORS = [["#e3c06a","#f7e3a6"],["#c8374a","#f0a0ab"],["#2f8f5b","#9be0b8"],["#3e63c9","#a9bdf5"],["#c9c9d6","#ffffff"],["#b04fa0","#eab0de"],["#1f1f2b","#d9b45a"]];
+const DECK_SIZES = [30,40,60,80,100];
+
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const cardCache = {};
+function cardFor(no){
+  if (cardCache[no]) return cardCache[no];
+  const r = rng(no*7919+2026), a = ITEMS.map((_,i)=>i);
+  for (let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  const c = a.slice(0,24); c.splice(FREE,0,-1); return (cardCache[no]=c);
+}
+function maskLook(no){const r=rng(no*31+7);return{col:MASK_COLORS[Math.floor(r()*MASK_COLORS.length)],feather:r()>.4,tilt:(r()*8-4).toFixed(1)}}
+function maskSvg(no){const m=maskLook(no);
+  return `<svg viewBox="0 0 120 80" aria-hidden="true"><defs><linearGradient id="g${no}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${m.col[1]}"/><stop offset="1" stop-color="${m.col[0]}"/></linearGradient></defs>
+  ${m.feather?`<use href="#feather" fill="${m.col[1]}"/>`:""}<use href="#mask" fill="url(#g${no})" stroke="#d9b45a" stroke-width="1.2"/></svg>`;}
+const pad = n => String(n).padStart(2,"0");
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function linesOf(set){return LINES.filter(l=>l.every(p=>set.has(p)))}
+
+/* ---------- State ---------- */
+const S = { mode:"loading", uid:null, host:false, myName:"",
+  game:{round:1,called:[],winners:[],deck:60}, cards:{}, players:{}, me:null };
+let B = null, seenWinners = -1, lastCalled = -1;
+
+function validMarks(me, card){
+  const set = new Set([FREE]);
+  if (!me || !me.marks || me.marks.round !== S.game.round) return set;
+  const called = new Set(S.game.called);
+  for (const p of me.marks.cells||[]) if (called.has(card[p])) set.add(p);
+  return set;
+}
+
+/* ---------- Views ---------- */
+const VIEWS = ["wall","card","host","rules"];
+function currentView(){
+  const h = location.hash.slice(1);
+  if (VIEWS.includes(h) && (h!=="host"||S.host)) return h;
+  return S.me && S.me.card ? "card" : "wall";
+}
+function renderNav(v){
+  const tabs = [["wall","Card Wall"],["card","My Card"]];
+  if (S.host) tabs.push(["host","Host Stage"]);
+  tabs.push(["rules","How to Play"]);
+  document.getElementById("nav").innerHTML = tabs.map(([k,l])=>`<a href="#${k}"${k===v?' aria-current="page"':""}>${l}</a>`).join("");
+}
+function render(){
+  const v = currentView();
+  renderNav(v);
+  VIEWS.forEach(k => document.getElementById("v-"+k).hidden = k!==v);
+  renderBanner();
+  if (v==="wall") renderWall();
+  if (v==="card") renderCard();
+  if (v==="host") renderHost();
+  document.body.classList.toggle("focus", v==="card");
+  drawIcons();
+}
+function drawIcons(){ try { if (window.lucide) window.lucide.createIcons({attrs:{"aria-hidden":"true"}}); } catch(e){} }
+function renderBanner(){
+  const w = S.game.winners||[], el = document.getElementById("banner");
+  if (seenWinners >= 0 && w.length > seenWinners && S.mode!=="loading") burst();
+  if (S.mode!=="loading") seenWinners = w.length;
+  const last = w[w.length-1];
+  el.innerHTML = last ? `<div class="banner"><div class="k">${last.kind==="raffle"?"Raffle winner":"Round "+last.round+" Bingo winner"}</div><div class="v">${esc(last.name)} · Card No. ${pad(last.card)}</div></div>` : "";
+}
+function deckCount(){const nums=Object.keys(S.cards).map(Number);return Math.max(S.game.deck||60,...nums,0)}
+
+function renderWall(){
+  const n = deckCount(), taken = Object.keys(S.cards).length, mine = S.me && S.me.card;
+  let html = `<div class="panel"><div class="wallhead"><div><h2>The Card Wall</h2>
+    <p class="sub" style="margin:0">Every mask hides a different card. Choose one and claim it under your name. Each card belongs to one guest only.</p></div>
+    <div class="row"><span class="count"><b>${n-taken}</b> of ${n} still masked</span>
+    <button class="btn primary" id="luckyBtn"${n-taken?"":" disabled"}>Choose for me</button></div></div>
+    <div class="wall">`;
+  for (let i=1;i<=n;i++){
+    const c = S.cards[i], isMine = c && c.owner===S.uid, look = maskLook(i);
+    const cls = isMine ? "mine" : c ? "taken" : "";
+    const lbl = isMine ? `Card ${i}, your card` : c ? `Card ${i}, taken by ${c.name}` : `Card ${i}, masked`;
+    html += `<button class="mcard ${cls}" data-no="${i}" style="--tilt:${look.tilt}deg" aria-label="${esc(lbl)}"${c&&!isMine?" disabled":""}>
+      ${maskSvg(i)}<span class="no">No. ${pad(i)}</span>${c?`<span class="who">${isMine?"Yours · ":""}${esc(c.name)}</span>`:""}</button>`;
+  }
+  html += `</div><div class="legend"><span><i style="background:var(--plum-hi)"></i>Masked: open to claim</span><span><i style="background:#4a3f55"></i>Claimed by a guest</span><span><i style="background:var(--gold)"></i>Your card</span></div></div>`;
+  const el = document.getElementById("v-wall"); el.innerHTML = html;
+  el.querySelectorAll(".mcard").forEach(b => b.onclick = () => {
+    const no = +b.dataset.no; if (S.me && S.me.card===no){location.hash="card";return;} openClaim(no);
+  });
+  const lb = document.getElementById("luckyBtn");
+  if (lb) lb.onclick = () => { const open=[]; for(let i=1;i<=n;i++) if(!S.cards[i]) open.push(i); if(open.length) openClaim(open[Math.floor(Math.random()*open.length)]); };
+}
+
+function ball(item, n, cls){
+  if (item===undefined) return `<div class="ball empty ${cls||""}"><i data-lucide="venetian-mask"></i></div>`;
+  return `<div class="ball ${cls||""}" title="${esc(ITEMS[item][0])}"><i data-lucide="${ICONS[item]}"></i>${n?`<b>${pad(n)}</b>`:""}</div>`;
+}
+function callingStrip(){
+  const c = S.game.called, last = c[c.length-1], fresh = lastCalled!==c.length ? "reveal" : "";
+  const recent = c.slice(-6,-1).reverse();
+  return `<div class="draws">${ball(last, c.length, fresh)}<div class="txt">
+    <div class="k">Round ${S.game.round} · ${last===undefined?"Waiting for the first draw":"Ball "+c.length+" of "+ITEMS.length}</div>
+    <div class="t ${fresh}">${last===undefined?"The host will draw the first VA moment soon.":esc(ITEMS[last][0])}</div>
+    ${last!==undefined&&ITEMS[last][1]?`<div class="dd">${esc(ITEMS[last][1])}</div>`:""}
+    ${recent.length?`<div class="recent"><span>Previous</span>${recent.map((x,i)=>ball(x,c.length-1-i,"sm")).join("")}</div>`:""}</div></div>`;
+}
+function cellHtml(item,i,cls){
+  if (item<0) return `<div class="cell free ${cls}"><svg viewBox="0 0 120 80" aria-hidden="true"><use href="#mask" fill="#1b0c2c"/></svg><span class="t">Free</span></div>`;
+  const [t,d] = ITEMS[item];
+  return `<button type="button" class="cell ${cls}" data-p="${i}" aria-pressed="${cls.includes("marked")}"><i data-lucide="${ICONS[item]}" class="ic"></i><span class="t">${esc(t)}</span>${d?`<span class="d">${esc(d)}</span>`:""}</button>`;
+}
+function renderCard(){
+  const el = document.getElementById("v-card"), me = S.me;
+  if (!me || !me.card){
+    el.innerHTML = `<div class="panel" style="text-align:center"><h2>You have not picked a card yet</h2>
+      <p class="sub" style="margin-inline:auto">Head to the Card Wall, choose any masked card, and claim it under your name.</p>
+      <a class="btn primary big" href="#wall" style="text-decoration:none;display:inline-block">Go to the Card Wall</a></div>`;
+    return;
+  }
+  const card = cardFor(me.card), called = new Set(S.game.called), valid = validMarks(me, card);
+  const wins = new Set(linesOf(valid).flat());
+  const hasLine = wins.size>0;
+  const b = me.bingo && me.bingo.round===S.game.round ? me.bingo : null;
+  let status = "Mark called squares as the host reads them.";
+  if (hasLine) status = "You have five in a row. Tap BINGO so the host can check your card.";
+  if (b && !b.status) status = "Bingo sent. The host is checking your card now.";
+  if (b && b.status==="confirmed") status = "Confirmed winner! Congratulations.";
+  if (b && b.status==="dismissed") status = "The host checked your card and the line did not hold. Keep playing.";
+  const canBingo = hasLine && (!b || b.status==="dismissed");
+  const canSwap = S.game.called.length===0;
+  let grid = ["B","I","N","G","O"].map(l=>`<div class="hd">${l}</div>`).join("");
+  card.forEach((item,i)=>{
+    const cls = [called.has(item)?"called":"", valid.has(i)&&item>=0?"marked":"", wins.has(i)?"win":""].join(" ");
+    grid += cellHtml(item,i,cls);
+  });
+  el.innerHTML = `<div class="cardwrap">${callingStrip()}
+    <div class="ribbon"><span class="name">${esc(me.name)}</span><span class="no">Card No. ${pad(me.card)}</span></div>
+    <div class="bingo" id="bingoGrid">${grid}</div>
+    <div class="bingobar"><button class="bingo-btn" id="bingoBtn"${canBingo?"":" disabled"}>BINGO!</button><div class="status">${status}</div></div>
+    <details><summary>Called so far (${S.game.called.length} of ${ITEMS.length})</summary><div class="chips">${S.game.called.map((x,i)=>`<span class="chip on"><span class="i">${i+1}</span>${esc(ITEMS[x][0])}</span>`).join("")||'<span class="empty">Nothing called yet.</span>'}</div></details>
+    <div class="row" style="justify-content:center;margin-top:18px">${canSwap?`<button class="btn ghost" id="releaseBtn">Give back this card</button>`:`<span class="empty">Cards lock once the host starts calling.</span>`}</div></div>`;
+  el.querySelectorAll("button.cell").forEach(c => c.onclick = () => toggleMark(+c.dataset.p, c));
+  document.getElementById("bingoBtn").onclick = callBingo;
+  const rb = document.getElementById("releaseBtn"); if (rb) armButton(rb, "Tap again to release", async () => { await B.release(me.card, S.uid); toast("Card returned to the wall."); location.hash="wall"; });
+}
+
+function miniCard(p){
+  const card = cardFor(p.card), called = new Set(S.game.called), valid = validMarks(p, card), wins = new Set(linesOf(valid).flat());
+  return `<div class="mini">${card.map((it,i)=>`<span class="${it<0?"f":""} ${called.has(it)?"c":""} ${valid.has(i)&&it>=0?"m":""} ${wins.has(i)?"w":""}" title="${it<0?"Free":esc(ITEMS[it][0])}">${it<0?"FREE":esc(ITEMS[it][0])}</span>`).join("")}</div>`;
+}
+let raffleSpin = null;
+function renderHost(){
+  const g = S.game, last = g.called[g.called.length-1], el = document.getElementById("v-host");
+  const claims = Object.entries(S.players).filter(([,p])=>p.bingo && p.bingo.round===g.round && !p.bingo.status);
+  const guests = Object.entries(S.cards).sort((a,b)=>a[0]-b[0]);
+  const remaining = ITEMS.length - g.called.length;
+  el.innerHTML = `<div class="panel stage">
+      <div class="k">Round ${g.round} · ${last===undefined?"Ready":"Now calling"}</div>
+      ${ball(last, g.called.length, "xl "+(lastCalled!==g.called.length?"reveal":""))}
+      <div class="big ${lastCalled!==g.called.length?"reveal":""}">${last===undefined?"Press Call next to begin":esc(ITEMS[last][0])}</div>
+      <div class="det">${last!==undefined&&ITEMS[last][1]?esc(ITEMS[last][1]):""}</div>
+      <div class="meta">${g.called.length} of ${ITEMS.length} called · ${guests.length} guests holding cards</div>
+      <div class="row"><button class="btn primary big" id="hNext"${remaining?"":" disabled"}>Call next</button>
+        <button class="btn" id="hUndo"${g.called.length?"":" disabled"}>Undo last</button>
+        <button class="btn" id="hRound">New round</button></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Bingo claims</h3>${claims.length?`<ul class="list">${claims.map(([id,p])=>{
+          const ok = linesOf(validMarks(p,cardFor(p.card))).length>0;
+          return `<li class="claim"><div class="claimtop"><span class="nm">${esc(p.name)}</span><span class="tag">Card ${pad(p.card)}</span><span class="verdict ${ok?"ok":"bad"}">${ok?"Valid line":"No valid line"}</span></div>
+            ${miniCard(p)}<div class="row"><button class="btn primary" data-confirm="${esc(id)}">Confirm winner</button><button class="btn ghost" data-dismiss="${esc(id)}">Not yet</button></div></li>`;}).join("")}</ul>`
+        :`<p class="empty">No one has called Bingo this round. Claims appear here with their card checked against your calls.</p>`}</div>
+      <div class="panel"><h3>Raffle draw</h3><p class="sub">Draws one guest at random from everyone holding a card, skipping guests who already won a raffle prize.</p>
+        <div class="raffle-name" id="raffleName">&nbsp;</div>
+        <div class="row" style="justify-content:center"><button class="btn primary" id="hRaffle"${guests.length?"":" disabled"}>Draw a raffle winner</button></div></div>
+      <div class="panel"><h3>Winners</h3>${(g.winners||[]).length?`<ul class="list">${g.winners.slice().reverse().map(w=>`<li><span class="nm">${esc(w.name)}</span><span class="tag">${w.kind==="raffle"?"Raffle":"Round "+w.round+" Bingo"}</span><span class="tag" style="margin-left:auto;color:var(--muted)">Card ${pad(w.card)}</span></li>`).join("")}</ul>`:`<p class="empty">Winners will be listed here.</p>`}</div>
+      <div class="panel"><h3>Call board</h3><div class="chips">${ITEMS.map((it,i)=>{const k=g.called.indexOf(i);return `<span class="chip ${k>=0?"on":""}">${k>=0?`<span class="i">${k+1}</span>`:""}<i data-lucide="${ICONS[i]}" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>${esc(it[0])}</span>`}).join("")}</div></div>
+      <div class="panel"><h3>Guests and cards</h3>${guests.length?`<ul class="list">${guests.map(([no,c])=>`<li><span class="tag">No. ${pad(no)}</span><span class="nm">${esc(c.name)}</span><button class="btn ghost x" data-release="${no}" data-owner="${esc(c.owner)}">Release</button></li>`).join("")}</ul>`:`<p class="empty">No cards claimed yet. Share this page so guests can pick from the wall.</p>`}</div>
+      <div class="panel"><h3>Event settings</h3>
+        <div class="row"><label for="deckSel" style="margin:0">Cards on the wall</label><select id="deckSel">${DECK_SIZES.map(s=>`<option value="${s}"${s===(g.deck||60)?" selected":""}>${s}</option>`).join("")}</select></div>
+        <div class="row" style="margin-top:14px"><button class="btn danger" id="hReset">Reset calls and winners</button><button class="btn danger" id="hClear">Clear every card</button></div>
+        <p class="sub" style="margin-top:10px;font-size:13px">Resetting keeps everyone's cards. Clearing returns every card to the wall.</p></div>
+    </div>`;
+  if (raffleSpin) document.getElementById("raffleName").textContent = raffleSpin;
+  document.getElementById("hNext").onclick = () => { const left=ITEMS.map((_,i)=>i).filter(i=>!g.called.includes(i)); if(!left.length) return;
+    saveGame({...g, called:[...g.called, left[Math.floor(Math.random()*left.length)]]}); };
+  document.getElementById("hUndo").onclick = () => saveGame({...g, called:g.called.slice(0,-1)});
+  armButton(document.getElementById("hRound"), `Tap again to start round ${g.round+1}`, () => saveGame({...g, round:g.round+1, called:[]}));
+  armButton(document.getElementById("hReset"), "Tap again to reset", () => saveGame({...g, round:1, called:[], winners:[]}));
+  armButton(document.getElementById("hClear"), "Tap again to clear all", async () => { for (const [no,c] of Object.entries(S.cards)) await B.release(+no, c.owner); toast("Every card is back on the wall."); });
+  document.getElementById("deckSel").onchange = e => saveGame({...S.game, deck:+e.target.value});
+  document.getElementById("hRaffle").onclick = raffle;
+  el.querySelectorAll("[data-confirm]").forEach(b=>b.onclick=()=>{const id=b.dataset.confirm,p=S.players[id];
+    saveGame({...S.game, winners:[...(S.game.winners||[]),{kind:"bingo",uid:id,name:p.name,card:p.card,round:S.game.round,at:Date.now()}]});
+    B.patchPlayer(id,{bingo:{...p.bingo,status:"confirmed"}});});
+  el.querySelectorAll("[data-dismiss]").forEach(b=>b.onclick=()=>{const id=b.dataset.dismiss,p=S.players[id];B.patchPlayer(id,{bingo:{...p.bingo,status:"dismissed"}});});
+  el.querySelectorAll("[data-release]").forEach(b=>armButton(b,"Confirm",()=>B.release(+b.dataset.release,b.dataset.owner)));
+}
+
+function raffle(){
+  const won = new Set((S.game.winners||[]).filter(w=>w.kind==="raffle").map(w=>w.uid));
+  const pool = Object.entries(S.cards).filter(([,c])=>!won.has(c.owner));
+  if (!pool.length){ toast("Every guest has already won a raffle prize."); return; }
+  const pick = pool[Math.floor(Math.random()*pool.length)];
+  const btn = document.getElementById("hRaffle"); btn.disabled = true;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let t = 0; const spin = () => {
+    raffleSpin = pool[Math.floor(Math.random()*pool.length)][1].name;
+    const el = document.getElementById("raffleName"); if (el) el.textContent = raffleSpin;
+    if ((t += 1) < (reduce?1:22)) setTimeout(spin, 60 + t*6);
+    else { raffleSpin = pick[1].name; const e2=document.getElementById("raffleName"); if(e2) e2.textContent=raffleSpin;
+      saveGame({...S.game, winners:[...(S.game.winners||[]),{kind:"raffle",uid:pick[1].owner,name:pick[1].name,card:+pick[0],round:S.game.round,at:Date.now()}]}); }
+  }; spin();
+}
+
+/* ---------- Actions ---------- */
+function saveGame(g){ S.game = g; render(); lastCalled = g.called.length; B.saveGame(g).catch(()=>toast("That change did not save. Only the host can run the game.")); }
+let markTimer = null;
+function toggleMark(p, el){
+  const me = S.me, card = cardFor(me.card), item = card[p];
+  if (!S.game.called.includes(item)){ el.classList.remove("nope"); void el.offsetWidth; el.classList.add("nope"); toast("Not called yet. Wait for the host to call it."); return; }
+  const cells = new Set(me.marks && me.marks.round===S.game.round ? me.marks.cells : []);
+  cells.has(p) ? cells.delete(p) : cells.add(p);
+  S.me = {...me, marks:{round:S.game.round, cells:[...cells]}}; render();
+  clearTimeout(markTimer); markTimer = setTimeout(()=>B.patchMe({marks:S.me.marks}).catch(()=>toast("Your mark did not save. Check your connection.")), 350);
+}
+function callBingo(){
+  S.me = {...S.me, bingo:{round:S.game.round, at:Date.now()}}; render(); burst();
+  B.patchMe({marks:S.me.marks, bingo:S.me.bingo}).catch(()=>toast("Your Bingo did not reach the host. Try again."));
+}
+
+let claimNo = null;
+function openClaim(no){
+  claimNo = no;
+  const dlg = document.getElementById("claimDlg");
+  document.getElementById("claimCard").innerHTML = `<div class="mcard" id="claimFace">${maskSvg(no)}<span class="no">No. ${pad(no)}</span></div>`;
+  const has = S.me && S.me.card, locked = has && S.game.called.length>0;
+  document.getElementById("claimTitle").textContent = `Unmask card No. ${pad(no)}?`;
+  document.getElementById("claimSub").textContent = locked ? `You already hold card No. ${pad(S.me.card)}, and cards lock once calling starts.`
+    : has ? `This swaps your current card No. ${pad(S.me.card)} for this one.` : "It will be yours for the night. Nobody else can claim it.";
+  document.getElementById("claimGo").disabled = !!locked;
+  const nm = document.getElementById("claimName"); nm.value = (S.me && S.me.name) || S.myName || nm.value;
+  document.getElementById("claimErr").textContent = "";
+  dlg.hidden = false; setTimeout(()=>nm.focus(), 30);
+}
+function closeClaim(){ document.getElementById("claimDlg").hidden = true; claimNo = null; }
+document.getElementById("claimCancel").onclick = closeClaim;
+document.getElementById("claimDlg").addEventListener("click", e => { if (e.target.id==="claimDlg") closeClaim(); });
+document.addEventListener("keydown", e => { if (e.key==="Escape" && !document.getElementById("claimDlg").hidden) closeClaim(); });
+document.getElementById("claimForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = document.getElementById("claimName").value.trim().replace(/\s+/g," "), err = document.getElementById("claimErr"), go = document.getElementById("claimGo");
+  if (!name){ err.textContent = "Add your name so the host can find you."; return; }
+  if (S.mode==="live" && !S.uid){ err.textContent = "Sign in to claim a card."; return; }
+  go.disabled = true; err.textContent = "";
+  try {
+    await B.claim(claimNo, name);
+    document.getElementById("claimFace").classList.add("flip");
+    S.myName = name;
+    setTimeout(()=>{ closeClaim(); go.disabled=false; location.hash = "card"; render(); toast(`Card No. ${pad(S.me.card)} is yours.`); burst(); }, 800);
+  } catch (x) {
+    go.disabled = false;
+    err.textContent = x && x.code==="taken" ? "Another guest just claimed this card. Pick a different mask."
+      : x && x.code==="invalid_argument" ? "You can view the wall, but your access does not allow claiming. Ask the host for Contributor access."
+      : "That claim did not go through. Try again in a moment.";
+  }
+});
+
+function armButton(btn, armedText, fn){
+  const orig = btn.textContent; let t = null;
+  btn.onclick = () => {
+    if (!btn.classList.contains("armed")){ btn.classList.add("armed"); btn.textContent = armedText; t = setTimeout(()=>{btn.classList.remove("armed");btn.textContent=orig;},4000); return; }
+    clearTimeout(t); btn.classList.remove("armed"); btn.textContent = orig; Promise.resolve(fn()).catch(()=>toast("That did not save. Try again."));
+  };
+}
+let toastT = null;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3200); }
+
+/* ---------- Backends ---------- */
+function demoBackend(){
+  return {
+    async saveGame(g){ S.game = g; render(); },
+    async claim(no, name){
+      if (S.cards[no] && S.cards[no].owner!==S.uid) throw {code:"taken"};
+      if (S.me && S.me.card && S.me.card!==no) delete S.cards[S.me.card];
+      S.cards[no] = {owner:S.uid, name, at:Date.now()};
+      S.me = {name, card:no, marks:{round:S.game.round,cells:[]}, bingo:null, joinedAt:Date.now()};
+      S.players[S.uid] = S.me; render();
+    },
+    async release(no, owner){ delete S.cards[no]; delete S.players[owner]; if (owner===S.uid) S.me=null; render(); },
+    async patchMe(p){ S.me = {...S.me, ...p}; S.players[S.uid] = S.me; render(); },
+    async patchPlayer(id, p){ S.players[id] = {...S.players[id], ...p}; if (id===S.uid) S.me = S.players[id]; render(); }
+  };
+}
+function startDemo(){
+  S.mode = "demo"; S.uid = "you"; S.host = true; B = demoBackend();
+  const ex = ["Example guest: Ana R.","Example guest: Joy M.","Example guest: Paolo D.","Example guest: Kim S.","Example guest: Leah T.","Example guest: Marco V."];
+  [7,14,23,31,42,55].forEach((no,i)=>{ S.cards[no] = {owner:"ex"+i, name:ex[i]}; S.players["ex"+i] = {name:ex[i], card:no, marks:{round:1,cells:[]}, bingo:null}; });
+  S.game = {round:1, called:[3,10,0,22], winners:[], deck:60};
+  lastCalled = 0;
+  document.getElementById("notice").textContent = "Preview mode with example guests. Open the published page to play together; claims and calls are shared live there.";
+  seenWinners = 0; render();
+}
+function liveBackend(db){
+  const gameRef = db.doc("game/state");
+  let gameChain = Promise.resolve();
+  const meRef = () => db.doc("players/"+S.uid);
+  return {
+    saveGame(g){ const body = {round:g.round, called:g.called, winners:g.winners||[], deck:g.deck||60, updatedAt:Date.now()};
+      return (gameChain = gameChain.then(()=>gameRef.set(body), ()=>gameRef.set(body))); },
+    async claim(no, name){
+      const ref = db.doc("cards/c"+no);
+      const lease = await ref.acquire({holder:S.uid, ttlMs:5000});
+      if (!lease.acquired) throw {code:"taken"};
+      const snap = await ref.get(), cur = snap.exists ? snap.data() : null;
+      if (cur && cur.owner && cur.owner!==S.uid) throw {code:"taken"};
+      await ref.set({owner:S.uid, name, at:Date.now()});
+      const prev = S.me && S.me.card;
+      const me = {name, card:no, marks:{round:S.game.round,cells:[]}, bingo:null, joinedAt:Date.now()};
+      await meRef().set(me);
+      S.me = me; S.cards[no] = {owner:S.uid, name};
+      if (prev && prev!==no){ delete S.cards[prev]; await db.doc("cards/c"+prev).delete(); }
+    },
+    async release(no, owner){
+      await db.doc("cards/c"+no).delete();
+      if (owner) await db.doc("players/"+owner).delete();
+      if (owner===S.uid) S.me = null;
+    },
+    patchMe(p){ return meRef().update(p); },
+    patchPlayer(id, p){ return db.doc("players/"+id).update(p); }
+  };
+}
+async function boot(){
+  render();
+  let db = null, user = null;
+  try { if (window.claude && window.claude.use) [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]); } catch(e){}
+  if (!db || !user){ startDemo(); return; }
+  const me = await user.me();
+  S.uid = me.id; S.host = !!me.canEdit; S.myName = me.name || "";
+  S.mode = "live"; B = liveBackend(db);
+  const notice = document.getElementById("notice");
+  if (!S.uid) notice.textContent = "Sign in to claim a card. You can still watch the wall.";
+  const slow = setTimeout(()=>{ notice.textContent = "Can't reach the game yet. The wall may be out of date until the connection returns."; }, 10000);
+  const fail = () => { notice.textContent = "The live game stopped updating. Reload the page to reconnect."; };
+  db.doc("game/state").onSnapshot(s => {
+    if (!s.metadata.fromCache){ clearTimeout(slow); if (notice.textContent.startsWith("Can't")) notice.textContent = ""; }
+    const d = s.exists ? s.data() : null;
+    S.game = d ? {round:d.round||1, called:d.called||[], winners:d.winners||[], deck:d.deck||60} : {round:1,called:[],winners:[],deck:60};
+    render(); lastCalled = S.game.called.length;
+  }, fail);
+  db.collection("cards").onSnapshot(s => {
+    const m = {}; s.docs.forEach(d => { const v = d.data(); if (v && v.owner) m[+d.id.slice(1)] = v; }); S.cards = m; render();
+  }, fail);
+  if (S.uid) db.doc("players/"+S.uid).onSnapshot(s => { S.me = s.exists ? s.data() : null; render(); }, fail);
+  if (S.host) db.collection("players").onSnapshot(s => { const m = {}; s.docs.forEach(d => m[d.id] = d.data()); S.players = m; render(); }, fail);
+}
+window.addEventListener("hashchange", render);
+
+/* ---------- Patterns (How to play) ---------- */
+document.getElementById("patterns").innerHTML = [["Horizontal",[10,11,12,13,14]],["Vertical",[2,7,12,17,22]],["Diagonal",[0,6,12,18,24]]]
+  .map(([n,on])=>`<div class="pat"><div class="g">${Array.from({length:25},(_,i)=>`<i class="${on.includes(i)?"on":""}"></i>`).join("")}</div>${n}</div>`).join("");
+
+/* ---------- Ambient snow + gold dust, confetti bursts ---------- */
+const fx = document.getElementById("fx"), ctx = fx.getContext("2d");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let flakes = [], bits = [];
+function sizeFx(){ fx.width = innerWidth*devicePixelRatio; fx.height = innerHeight*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+sizeFx(); addEventListener("resize", sizeFx);
+for (let i=0;i<70;i++) flakes.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2+.6,v:Math.random()*.4+.15,g:Math.random()<.3});
+function burst(){ if (reduceMotion) return; const cols=["#f4dd9b","#d9b45a","#c8374a","#2f8f5b","#ffffff"];
+  for (let i=0;i<140;i++) bits.push({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:Math.random()*-11-2,c:cols[i%cols.length],l:120,s:Math.random()*5+3,a:Math.random()*6}); }
+function tick(){
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+  for (const f of flakes){ f.y+=f.v; f.x+=Math.sin(f.y/40)*.2; if (f.y>innerHeight){f.y=-4;f.x=Math.random()*innerWidth;}
+    ctx.fillStyle = f.g ? "rgba(244,221,155,.55)" : "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.fill(); }
+  bits = bits.filter(b=>b.l-->0);
+  for (const b of bits){ b.vy+=.25; b.x+=b.vx; b.y+=b.vy; b.a+=.2; ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(b.a); ctx.fillStyle=b.c; ctx.globalAlpha=Math.min(1,b.l/40); ctx.fillRect(-b.s/2,-b.s/4,b.s,b.s/2); ctx.restore(); }
+  requestAnimationFrame(tick);
+}
+if (!reduceMotion) requestAnimationFrame(tick); else { for (const f of flakes){ ctx.fillStyle="rgba(255,255,255,.25)"; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.fill(); } }
+
+boot();
+</script>
