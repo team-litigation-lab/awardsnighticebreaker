@@ -2,7 +2,7 @@
 
 A Christmas party icebreaker and raffle game for the 2026 LSH VA Awards Night.
 
-`bingo.html` is the source of the published Claude artifact. It has four views:
+`index.html` is the source of the published Claude artifact. It replaces the earlier single-device version, which is still in the git history. It has four views:
 
 - **Get My Card**: guests type their name and tap *Unwrap my card*. They get their own card right away.
   - No two cards have the same set of squares, and each card number has its own ornament design.
