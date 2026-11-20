@@ -4,7 +4,7 @@ A Christmas party icebreaker and raffle game for the 2026 LSH VA Awards Night.
 
 The game is `public/index.html`. The same file runs in two places:
 
-- **Cloudflare (this repository):** `worker.js` serves the page and runs the live game in one Durable Object (`Game`). Every change is pushed to all open screens over WebSockets. Guests just type their name, with no accounts; each device remembers its own card. The first visit to `/#host` sets the **host PIN**, and only someone with the PIN can run draws, confirm winners or moderate shout-outs. Cloudflare Workers Builds deploys `main` automatically (`wrangler.jsonc`).
+- **Cloudflare (this repository):** `worker.js` serves the page and keeps the live game in a **D1 database** (`awardsnighticebreaker`, bound as `DB` in `wrangler.jsonc`). Every phone checks `/api/sync` about every 2 seconds and downloads only the parts that changed; actions go to `/api/act`. Guests type their name and the server picks them a free card, so two people never get the same one. The first visit to `/#host` sets the **host PIN**. Cloudflare Workers Builds deploys `main` automatically. The game doesn't use a Durable Object because the account is at its 500-namespace limit.
 - **claude.ai artifact:** live data and sign-in come from claude.ai instead.
 
 Opened any other way (for example as a local file), the page starts a preview with example guests.
@@ -36,9 +36,12 @@ Opening the file outside claude.ai starts a local preview with example guests.
 
 ## Capacity
 
-Load-tested against the real Worker and Durable Object (`wrangler dev`, `loadtest.mjs`):
+Load-tested against the real Worker with D1 (`wrangler dev`, then `N=150 node loadtest.mjs`). Every simulated phone checked in every 2 seconds for the whole test:
 
-- **150 participants at once:** all connected in 0.5 s and registered in 1.4 s with no duplicate cards. Every player received all 12 draws while all 150 marked their cards after each one. 30 simultaneous Bingo claims all reached the host. 150 shout-outs in one burst all arrived. After everyone dropped and reconnected at once, all 150 still had their card. No errors.
-- **300 at once (double):** no crash. 150 got cards, and the other 150 got a clear "all cards are taken" answer. The slowest replies took about 2 s in the biggest bursts.
-- Real host, phone and big-screen pages open during the 150-player test stayed responsive: updates took about 0.1 s on the host page, under 0.1 s on the phone and about 0.01 s on the big screen.
-- Bingo claims go only to host screens, so the traffic doesn't multiply across 150 phones.
+- **150 participants at once (run twice):**
+  - All 150 registered within about 2 s, with no duplicate cards.
+  - Every phone received every draw: about 1 s on average, 2.3 s at most.
+  - All 30 simultaneous Bingo claims reached the host.
+  - All 150 shout-outs arrived, with no errors.
+- **300 at once (double):** no crash. 150 got cards and the other 150 were told the cards are full. Draws still reached every phone within 2.6 s.
+- **Traffic:** about 100 requests per second with 150 people, roughly 0.7 million for a 2-hour party. That fits easily in the 10 million a month included with **Workers Paid**. The free plan's 100k a day would run out in about 20 minutes.

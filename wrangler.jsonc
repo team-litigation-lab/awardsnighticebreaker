@@ -1,5 +1,6 @@
 {
-  // VA Life Bingo: the Worker serves public/ and runs the live game in one Durable Object.
+  // VA Life Bingo: the Worker serves public/ and keeps the live game in D1.
+  // (No Durable Object: the account is at its 500 Durable Object namespace limit.)
   "name": "awardsnighticebreaker",
   "main": "worker.js",
   "compatibility_date": "2025-09-15",
@@ -8,9 +9,8 @@
     "binding": "ASSETS",
     "run_worker_first": true
   },
-  "durable_objects": {
-    "bindings": [{ "name": "GAME", "class_name": "Game" }]
-  },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Game"] }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "awardsnighticebreaker", "database_id": "1136d7d9-40c6-4646-9400-d68dfb07ea79" }
+  ],
   "observability": { "enabled": true }
 }
