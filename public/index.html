@@ -529,7 +529,7 @@ footer small{display:block;font-family:var(--f-head);font-size:11px;letter-spaci
       <div class="screen" id="screen">
         <div class="scr-top"><span class="scr-brand"><svg class="holly" viewBox="0 0 44 30" aria-hidden="true"><use href="#holly"/></svg>Shout-out Board</span><span class="scr-q" id="scrQueue"></span></div>
         <div class="scr-card" id="scrCard" aria-live="polite"></div>
-        <div class="scr-foot"><span>Send yours: open <b>VA Life Bingo</b> and tap <b>Shout-outs</b></span><span id="scrCount"></span></div>
+        <div class="scr-foot"><span id="scrJoin">Send yours: open <b>VA Life Bingo</b> and tap <b>Shout-outs</b></span><span id="scrCount"></span></div>
         <div class="scr-ctl" id="scrCtl">
           <button class="btn" id="scrPrev" type="button">Back</button>
           <button class="btn" id="scrPause" type="button">Pause</button>
@@ -1129,6 +1129,8 @@ function scrShow(x, replay){
   scrCounts(); drawIcons();
 }
 function scrCounts(){ const q = scrQueue().length, total = allShouts().filter(isVisible).length;
+  /* on the site, show its address so people watching the Meet share can join */
+  if (S.mode==="cloud") document.getElementById("scrJoin").innerHTML = `Join and send yours at <b>${esc(location.host)}</b> → Shout-outs`;
   document.getElementById("scrQueue").innerHTML = q ? `<b>${q}</b> up next` : (SCR.paused ? "Paused" : "Live");
   document.getElementById("scrCount").innerHTML = `<b>${total}</b> shout-outs so far`; }
 function renderScreen(active){
