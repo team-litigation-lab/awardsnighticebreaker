@@ -2,7 +2,16 @@
 
 A Christmas party icebreaker and raffle game for the 2026 LSH VA Awards Night.
 
-`index.html` is the source of the published Claude artifact. It replaces the earlier single-device version, which is still in the git history. It has these views:
+The game is `public/index.html`. The same file runs in two places:
+
+- **Cloudflare (this repository):** `worker.js` serves the page and runs the live game in one Durable Object (`Game`). Every change is pushed to all open screens over WebSockets. Guests just type their name, with no accounts; each device remembers its own card. The first visit to `/#host` sets the **host PIN**, and only someone with the PIN can run draws, confirm winners or moderate shout-outs. Cloudflare Workers Builds deploys `main` automatically (`wrangler.jsonc`).
+- **claude.ai artifact:** live data and sign-in come from claude.ai instead.
+
+Opened any other way (for example as a local file), the page starts a preview with example guests.
+
+To test locally: `npx wrangler dev`, then open http://localhost:8787.
+
+The earlier single-device version is still in the git history. It has these views:
 
 - **Get My Card**: guests type their name and tap *Unwrap my card*. They get their own card right away.
   - No two cards have the same set of squares, and each card number has its own ornament design.

@@ -541,6 +541,18 @@ footer small{display:block;font-family:var(--f-head);font-size:11px;letter-spaci
         </div>
       </div>
     </section>
+    <section id="v-login" hidden>
+      <div class="panel join">
+        <h2 id="loginTitle">Host sign-in</h2>
+        <p class="sub" id="loginSub">Enter the host PIN to run the draws, check Bingo claims and moderate shout-outs.</p>
+        <form id="loginForm" autocomplete="off">
+          <label for="hostPin">Host PIN</label>
+          <input type="password" id="hostPin" minlength="4" maxlength="40" required autocomplete="off">
+          <p class="err" id="loginErr" role="alert"></p>
+          <button type="submit" class="btn primary big" id="loginGo">Sign in as host</button>
+        </form>
+      </div>
+    </section>
     <section id="v-rules" hidden>
       <div class="panel">
         <h2>How to play</h2>
@@ -554,6 +566,7 @@ footer small{display:block;font-family:var(--f-head);font-size:11px;letter-spaci
         </ol>
         <h3 style="margin-top:20px">Winning patterns</h3><p class="sub">The host uses a different pattern each round. Each one needs only a few squares, so rounds take minutes.</p>
         <div class="patlist" id="patterns"></div>
+        <p class="sub" id="hostLink" hidden style="margin-top:18px">Running the game? <a href="#host" style="color:var(--gold-hi)">Host sign-in</a></p>
       </div>
     </section>
   </main>
@@ -735,11 +748,13 @@ function validMarks(me, card){
 }
 
 /* ---------- Views ---------- */
-const VIEWS = ["join","card","shout","screen","host","rules"];
+const VIEWS = ["join","card","shout","screen","host","login","rules"];
 function currentView(){
   let h = location.hash.slice(1); if (h==="wall") h = "join";
   if (h==="join" && myCard()) return "card";
   if (h==="card" && !myCard()) return "join";
+  if ((h==="host" || h==="login") && S.mode==="cloud") return S.host ? "host" : "login";
+  if (h==="login") return myCard() ? "card" : "join";
   if (VIEWS.includes(h) && (h!=="host"||S.host)) return h;
   return myCard() ? "card" : "join";
 }
@@ -765,6 +780,8 @@ function renderNow(){
   if (v==="card") renderCard();
   if (v==="host") renderHost();
   if (v==="shout") renderShout();
+  if (v==="login") renderLogin();
+  document.getElementById("hostLink").hidden = !(S.mode==="cloud" && !S.host);
   renderScreen(v==="screen");
   document.body.classList.toggle("focus", v==="card" || v==="host");
   document.body.classList.toggle("screenmode", v==="screen");
@@ -798,7 +815,7 @@ function cardCap(){ const taken = Object.keys(S.cards).length;
   const roomy = Math.ceil((taken+12)/10)*10;
   return Math.min(MAX_CARDS, Math.max(MIN_CARDS, S.game.deck||DEFAULT_DECK, roomy)); }
 /* my card only counts if the wall agrees it is still mine (host may have released it) */
-function myCard(){ if(!S.me||!S.me.card) return null; if(S.mode==="live"&&S.cardsLoaded){const c=S.cards[S.me.card]; if(!c||c.owner!==S.uid) return null;} return S.me.card; }
+function myCard(){ if(!S.me||!S.me.card) return null; if((S.mode==="live"||S.mode==="cloud")&&S.cardsLoaded){const c=S.cards[S.me.card]; if(!c||c.owner!==S.uid) return null;} return S.me.card; }
 
 function renderJoin(){
   const cap = cardCap(), taken = Object.keys(S.cards).length, left = Math.max(0, cap - taken);
@@ -983,7 +1000,7 @@ document.getElementById("joinForm").addEventListener("submit", async e => {
   joining = true; go.disabled = true; go.textContent = "Unwrapping..."; err.textContent = "";
   try {
     const no = await joinGame(name);
-    S.myName = name;
+    S.myName = name; try { localStorage.setItem("vlb_name", name); } catch(e){}
     const gift = document.getElementById("joinGift"); gift.classList.add("flip");
     setTimeout(()=>{ gift.classList.remove("flip"); joining = false; go.textContent = "Unwrap my card"; location.hash = "card"; render(); toast(`Welcome, ${name}! Card No. ${pad(no)} is yours.`); burst(); }, 800);
   } catch (x) {
@@ -1204,11 +1221,111 @@ function liveBackend(db){
     saveMod(m){ return retry(()=>db.doc("game/shoutmod").set({hidden:m.hidden||[], approved:m.approved||[], requireApproval:!!m.requireApproval, updatedAt:Date.now()})); }
   };
 }
+/* ---------- Cloud backend: the repo's Cloudflare site (worker.js) ----------
+   Guests have no accounts there: each device gets a random id and secret, kept in this browser. */
+function rid(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map(b=>"abcdefghijklmnopqrstuvwxyz0123456789"[b%36]).join(""); }
+function cloudIdentity(){
+  let id = null, tok = null;
+  try { id = localStorage.getItem("vlb_uid"); tok = localStorage.getItem("vlb_tok"); } catch(e){}
+  if (!id || !tok){ id = "g_" + rid(20); tok = rid(32); try { localStorage.setItem("vlb_uid", id); localStorage.setItem("vlb_tok", tok); } catch(e){} }
+  return {id, tok};
+}
+function hostPin(){ if (S.pin) return S.pin; try { return localStorage.getItem("vlb_pin") || ""; } catch(e){ return ""; } }
+function normGame(d){ return d ? {round:d.round||1, called:d.called||[], winners:d.winners||[], deck:d.deck||DEFAULT_DECK, pattern:d.pattern||"line", used:d.used||[d.pattern||"line"]} : {round:1,called:[],winners:[],deck:DEFAULT_DECK,pattern:"line",used:["line"]}; }
+function cloudBackend(){
+  const pending = new Map(), notice = document.getElementById("notice");
+  let ws = null, seq = 0, tries = 0;
+  const slow = setTimeout(()=>{ if (S.mode==="cloud" && !S.cardsLoaded) notice.textContent = "Can't reach the game yet. Check your connection; the page keeps trying."; }, 10000);
+  function connect(){
+    const url = (location.protocol==="https:" ? "wss://" : "ws://") + location.host + "/ws?uid=" + encodeURIComponent(S.uid);
+    try { ws = new WebSocket(url); } catch(e){ return retryLater(); }
+    ws.onopen = () => {
+      send({op:"hello", token:S.tok, pin:hostPin()}).then(r => {
+        tries = 0; clearTimeout(slow);
+        if (/^(Reconnecting|Can't reach)/.test(notice.textContent)) notice.textContent = "";
+        const sn = r.snap;
+        S.game = normGame(sn.game); S.cards = sn.cards || {}; S.players = sn.claims || {}; S.shouts = sn.shouts || {};
+        S.mod = sn.mod || {hidden:[], approved:[], requireApproval:false}; S.me = sn.me; S.hostSet = sn.hostSet; S.host = !!sn.host;
+        S.cardsLoaded = true; render();
+      }).catch(err => { if (err && err.code==="auth") notice.textContent = "This browser's game id is out of date. Clear this site's data, then reload."; });
+    };
+    ws.onmessage = e => {
+      let m; try { m = JSON.parse(e.data); } catch(x){ return; }
+      if (m.re !== undefined){ const p = pending.get(m.re); if (p){ pending.delete(m.re); m.ok ? p.res(m) : p.rej({code:m.code||"error", message:m.message||""}); } return; }
+      if (m.t==="game") S.game = normGame(m.game);
+      else if (m.t==="card"){ if (m.data) S.cards[m.no] = m.data; else delete S.cards[m.no]; }
+      else if (m.t==="claims") S.players = m.players || {};
+      else if (m.t==="shout"){ if (m.data) S.shouts = {...S.shouts, [m.uid]: m.data}; else { const c = {...S.shouts}; delete c[m.uid]; S.shouts = c; } }
+      else if (m.t==="mod") S.mod = m.mod;
+      else if (m.t==="me") S.me = m.data;
+      else if (m.t==="hostSet") S.hostSet = true;
+      render();
+    };
+    ws.onclose = () => { for (const [,p] of pending) p.rej({code:"unavailable"}); pending.clear(); if (S.cardsLoaded) notice.textContent = "Reconnecting to the live game..."; retryLater(); };
+  }
+  function retryLater(){ setTimeout(connect, Math.min(15000, 700 * 2**tries++) * (0.6 + Math.random()*0.8)); }
+  function send(msg){
+    return new Promise((res, rej) => {
+      if (!ws || ws.readyState !== 1) return rej({code:"unavailable"});
+      const id = ++seq; pending.set(id, {res, rej}); ws.send(JSON.stringify({...msg, id}));
+      setTimeout(() => { if (pending.has(id)){ pending.delete(id); rej({code:"unavailable"}); } }, 10000);
+    });
+  }
+  connect();
+  return {
+    saveGame: g => retry(() => send({op:"saveGame", game:g, pin:hostPin()})),
+    async claim(no, name){ const r = await send({op:"claim", no, name}); S.me = r.me; S.cards[no] = {owner:S.uid, name}; },
+    async release(no, owner){ await retry(() => send({op:"release", no, owner, pin:hostPin()})); if (owner===S.uid) S.me = null; delete S.cards[no]; render(); },
+    patchMe: p => retry(() => send({op:"patchMe", patch:p})),
+    patchPlayer: (id, p) => retry(() => send({op:"patchPlayer", target:id, patch:p, pin:hostPin()})),
+    saveShouts: d => retry(() => send({op:"saveShouts", name:d.name, items:d.items})).then(() => { S.shouts = {...S.shouts, [S.uid]: d}; render(); }),
+    saveMod: m => retry(() => send({op:"saveMod", mod:m, pin:hostPin()})),
+    hostLogin: pin => send({op:"hostLogin", pin})
+  };
+}
+async function cloudAvailable(){
+  if (!/^https?:$/.test(location.protocol)) return false;
+  try {
+    const ctl = new AbortController(), t = setTimeout(()=>ctl.abort(), 4000);
+    const r = await fetch("/api/ping", {cache:"no-store", signal:ctl.signal}); clearTimeout(t);
+    return r.ok && (await r.json()).ok === true;
+  } catch(e){ return false; }
+}
+function startCloud(){
+  const idn = cloudIdentity();
+  S.mode = "cloud"; S.uid = idn.id; S.tok = idn.tok; S.host = false; S.hostSet = true;
+  try { S.myName = localStorage.getItem("vlb_name") || ""; } catch(e){}
+  B = cloudBackend(); render();
+}
+function renderLogin(){
+  const fresh = S.hostSet === false;
+  document.getElementById("loginTitle").textContent = fresh ? "Set the host PIN" : "Host sign-in";
+  document.getElementById("loginSub").textContent = fresh
+    ? "No host PIN has been set yet. Choose one now (at least 4 characters). Only someone with this PIN can run the draws, confirm winners and moderate shout-outs."
+    : "Enter the host PIN to run the draws, check Bingo claims and moderate shout-outs.";
+  document.getElementById("loginGo").textContent = fresh ? "Set PIN and open the Host Stage" : "Sign in as host";
+}
+document.getElementById("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const pin = document.getElementById("hostPin").value.trim(), err = document.getElementById("loginErr"), go = document.getElementById("loginGo");
+  if (pin.length < 4){ err.textContent = "The PIN needs at least 4 characters."; return; }
+  go.disabled = true; err.textContent = "";
+  try {
+    await B.hostLogin(pin);
+    S.pin = pin; S.host = true; S.hostSet = true;
+    try { localStorage.setItem("vlb_pin", pin); } catch(x){}
+    document.getElementById("hostPin").value = "";
+    location.hash = "host"; render(); toast("Signed in as host.");
+  } catch(x){
+    err.textContent = x && x.message ? x.message : "Sign-in did not go through. Try again.";
+  } finally { go.disabled = false; }
+});
+
 async function boot(){
   render();
   let db = null, user = null;
   try { if (window.claude && window.claude.use) [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]); } catch(e){}
-  if (!db || !user){ startDemo(); return; }
+  if (!db || !user){ if (await cloudAvailable()) startCloud(); else startDemo(); return; }
   const me = await user.me();
   S.uid = me.id; S.host = !!me.canEdit; S.myName = me.name || "";
   S.mode = "live"; B = liveBackend(db);
