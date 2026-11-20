@@ -13,6 +13,11 @@ A Christmas party icebreaker and raffle game for the 2026 LSH VA Awards Night.
   - change the pattern before the first call of a round;
   - check Bingo claims, which appear in the order they arrive;
   - confirm winners and run the raffle draw.
+- **Shout-outs**: guests thank a teammate in a few seconds. They type who it's for and a message (quick-start prompts help) and pick an ornament. The page shows a live feed and a "Top cheerleaders" list. The host can hide any shout-out or turn on approve-before-showing.
+- **Big screen** (`#screen`): a full-screen display for a second Meet share. It shows one shout-out at a time in large type, in the order they were sent.
+  - Each shout-out stays up 6–20 seconds; the presenter picks the time.
+  - When the queue runs out, recent shout-outs replay as "Encore".
+  - Controls hide after 3 seconds. The arrow keys and the space bar skip ahead.
 - **How to Play**: the rules and every pattern.
 
 Each new round automatically picks a pattern that hasn't been used yet. The patterns are Any line, Four corners, Postage stamp, Little plus, Little X, Any 2×2 block, Any diagonal and Middle cross.
