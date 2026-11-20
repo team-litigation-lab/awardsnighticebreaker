@@ -33,3 +33,12 @@ Each new round automatically picks a pattern that hasn't been used yet. The patt
 Each pattern needs only about 4 called squares. In simulations with 150 players, the first Bingo came after 5–9 draws on average.
 
 Opening the file outside claude.ai starts a local preview with example guests.
+
+## Capacity
+
+Load-tested against the real Worker and Durable Object (`wrangler dev`, `loadtest.mjs`):
+
+- **150 participants at once:** all connected in 0.5 s and registered in 1.4 s with no duplicate cards. Every player received all 12 draws while all 150 marked their cards after each one. 30 simultaneous Bingo claims all reached the host. 150 shout-outs in one burst all arrived. After everyone dropped and reconnected at once, all 150 still had their card. No errors.
+- **300 at once (double):** no crash. 150 got cards, and the other 150 got a clear "all cards are taken" answer. The slowest replies took about 2 s in the biggest bursts.
+- Real host, phone and big-screen pages open during the 150-player test stayed responsive: updates took about 0.1 s on the host page, under 0.1 s on the phone and about 0.01 s on the big screen.
+- Bingo claims go only to host screens, so the traffic doesn't multiply across 150 phones.

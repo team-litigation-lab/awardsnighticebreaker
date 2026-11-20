@@ -1311,7 +1311,8 @@ document.getElementById("loginForm").addEventListener("submit", async e => {
   if (pin.length < 4){ err.textContent = "The PIN needs at least 4 characters."; return; }
   go.disabled = true; err.textContent = "";
   try {
-    await B.hostLogin(pin);
+    const r = await B.hostLogin(pin);
+    if (r && r.claims) S.players = r.claims;
     S.pin = pin; S.host = true; S.hostSet = true;
     try { localStorage.setItem("vlb_pin", pin); } catch(x){}
     document.getElementById("hostPin").value = "";

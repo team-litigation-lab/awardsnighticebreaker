@@ -113,6 +113,9 @@ export class Game extends DurableObject {
 
   /* ---- messaging ---- */
   broadcast(msg) { const s = JSON.stringify(msg); for (const ws of this.ctx.getWebSockets()) { try { ws.send(s); } catch (e) {} } }
+  // Bingo claims matter only to the host, so they go to host screens alone (with 150 players a
+  // claims list sent to everyone on every claim would multiply traffic for no one's benefit).
+  toHosts(msg) { const s = JSON.stringify(msg); for (const ws of this.ctx.getWebSockets()) { const a = ws.deserializeAttachment(); if (a && a.host) { try { ws.send(s); } catch (e) {} } } }
   toUser(uid, msg) { const s = JSON.stringify(msg); for (const ws of this.ctx.getWebSockets("u:" + uid)) { try { ws.send(s); } catch (e) {} } }
   claims() {
     const out = {};
@@ -121,7 +124,7 @@ export class Game extends DurableObject {
   }
   snapshot(uid, host) {
     return {
-      game: this.game, cards: Object.fromEntries(this.cards), claims: this.claims(),
+      game: this.game, cards: Object.fromEntries(this.cards), claims: host ? this.claims() : {},
       shouts: Object.fromEntries(this.shouts), mod: this.mod, me: this.players.get(uid) || null,
       hostSet: !!this.pinHash, host,
     };
@@ -140,12 +143,13 @@ export class Game extends DurableObject {
         const known = this.tokens.get(att.uid), h = await sha("tok:" + tok);
         if (known && known !== h) return reply({ ok: false, code: "auth", message: "This device id belongs to someone else." });
         if (!known) { this.tokens.set(att.uid, h); await this.ctx.storage.put("tok:" + att.uid, h); }
-        ws.serializeAttachment({ uid: att.uid, ok: true });
-        return reply({ ok: true, snap: this.snapshot(att.uid, await this.isHost(m.pin)) });
+        const host = await this.isHost(m.pin);
+        ws.serializeAttachment({ uid: att.uid, ok: true, host });
+        return reply({ ok: true, snap: this.snapshot(att.uid, host) });
       }
       if (!att.ok) return reply({ ok: false, code: "auth" });
       const uid = att.uid;
-      const result = await this.handle(uid, m);
+      const result = await this.handle(uid, m, ws);
       reply({ ok: true, ...(result || {}) });
     } catch (e) {
       reply({ ok: false, code: (e && e.code) || "error", message: (e && e.message) || "" });
@@ -154,7 +158,7 @@ export class Game extends DurableObject {
   async webSocketClose(ws) { try { ws.close(); } catch (e) {} }
   async webSocketError(ws) { try { ws.close(); } catch (e) {} }
 
-  async handle(uid, m) {
+  async handle(uid, m, ws) {
     const fail = (code, message) => { const e = new Error(message || code); e.code = code; throw e; };
     const needHost = async () => { if (!(await this.isHost(m.pin))) fail("forbidden", "Only the host can do that."); };
     switch (m.op) {
@@ -187,7 +191,7 @@ export class Game extends DurableObject {
         const p = this.players.get(owner);
         if (p && p.card === no) { this.players.delete(owner); await this.ctx.storage.delete("player:" + owner); this.toUser(owner, { t: "me", data: null }); }
         this.broadcast({ t: "card", no, data: null });
-        if (p && p.claimRound === this.game.round) this.broadcast({ t: "claims", players: this.claims() });
+        if (p && p.claimRound === this.game.round) this.toHosts({ t: "claims", players: this.claims() });
         return {};
       }
       case "patchMe": {
@@ -199,7 +203,7 @@ export class Game extends DurableObject {
         if ("claimRound" in patch) next.claimRound = int(patch.claimRound, 0, 9999) || 0;
         this.players.set(uid, next); await this.ctx.storage.put("player:" + uid, next);
         this.toUser(uid, { t: "me", data: next });
-        if (next.claimRound === this.game.round) this.broadcast({ t: "claims", players: this.claims() });
+        if (next.claimRound === this.game.round) this.toHosts({ t: "claims", players: this.claims() });
         return {};
       }
       case "patchPlayer": {
@@ -210,7 +214,7 @@ export class Game extends DurableObject {
         if (m.patch && "bingo" in m.patch) next.bingo = cleanBingo(m.patch.bingo, true);
         this.players.set(target, next); await this.ctx.storage.put("player:" + target, next);
         this.toUser(target, { t: "me", data: next });
-        this.broadcast({ t: "claims", players: this.claims() });
+        this.toHosts({ t: "claims", players: this.claims() });
         return {};
       }
       case "saveGame": {
@@ -218,7 +222,7 @@ export class Game extends DurableObject {
         const before = this.game.round;
         this.game = cleanGame(m.game); await this.ctx.storage.put("game", this.game);
         this.broadcast({ t: "game", game: this.game });
-        if (this.game.round !== before) this.broadcast({ t: "claims", players: this.claims() });
+        if (this.game.round !== before) this.toHosts({ t: "claims", players: this.claims() });
         return {};
       }
       case "saveShouts": {
@@ -244,10 +248,12 @@ export class Game extends DurableObject {
         if (!this.pinHash) {
           this.pinHash = await sha("vlb:" + pin); await this.ctx.storage.put("pin", this.pinHash);
           this.broadcast({ t: "hostSet" });
-          return { created: true };
+          ws.serializeAttachment({ ...ws.deserializeAttachment(), host: true });
+          return { created: true, claims: this.claims() };
         }
         if (!(await this.isHost(pin))) fail("badpin", "That PIN is not right.");
-        return {};
+        ws.serializeAttachment({ ...ws.deserializeAttachment(), host: true });
+        return { claims: this.claims() };
       }
       default: fail("invalid_argument", "Unknown action.");
     }
