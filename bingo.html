@@ -13,7 +13,7 @@
   --line:rgba(217,180,90,.32); --line-hi:rgba(244,221,155,.7);
   --gold:#d9b45a; --gold-hi:#f4dd9b; --gold-lo:#9c7a2e;
   --ink:#f6eddc; --muted:#bba9d3; --dim:#7f6c99;
-  --holly:#2f8f5b; --berry:#c8374a;
+  --holly:#2f8f5b; --berry:#c8374a; --pine:#0f3b2c; --pine-hi:#1e6b4a; --snow:#fbfaff;
   --f-display:"Cinzel Decorative","Cinzel",Georgia,serif;
   --f-head:"Cinzel",Georgia,"Times New Roman",serif;
   --f-script:"Pinyon Script","Snell Roundhand","Apple Chancery",cursive;
@@ -24,7 +24,7 @@
 [hidden]{display:none!important}
 html,body{min-height:100%}
 body{
-  background:radial-gradient(120% 60% at 50% 0%,#3a1663 0%,var(--night) 60%) fixed,var(--night);
+  background:radial-gradient(120% 60% at 50% 0%,#3a1663 0%,transparent 60%) fixed,radial-gradient(110% 55% at 50% 100%,#123f2e 0%,transparent 70%) fixed,var(--night);
   color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:0 48px;
@@ -34,6 +34,19 @@ body{
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
 
+/* String lights */
+.lights{position:relative;height:46px;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));overflow:hidden}
+.lights svg.wire{position:absolute;inset:0;width:100%;height:100%}
+.bulb{position:absolute;top:0;width:11px;height:17px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--c);box-shadow:0 0 10px 2px var(--c);
+  animation:twinkle var(--d,2.4s) ease-in-out infinite;animation-delay:var(--del,0s)}
+.bulb::before{content:"";position:absolute;left:2px;top:-4px;width:7px;height:5px;border-radius:2px;background:#5b4a2a}
+@keyframes twinkle{0%,100%{opacity:1;box-shadow:0 0 12px 3px var(--c)}50%{opacity:.45;box-shadow:0 0 2px 0 var(--c)}}
+.holly{width:44px;height:30px;flex:none}
+.eyerow{display:flex;align-items:center;justify-content:center;gap:10px}
+/* Snow resting on panels */
+.panel{position:relative}
+.panel::before{content:"";position:absolute;left:10px;right:10px;top:-5px;height:10px;pointer-events:none;
+  background:radial-gradient(circle at 8px 10px,var(--snow) 0 7px,transparent 7.5px) 0 0/22px 10px repeat-x;opacity:.85;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 /* Masthead */
 .mast{text-align:center;padding-block:28px 10px}
 .eyebrow{font-family:var(--f-head);font-weight:600;letter-spacing:.22em;text-transform:uppercase;font-size:12px;color:var(--gold)}
@@ -44,6 +57,9 @@ h1{font-family:var(--f-display);font-weight:900;margin:2px 0 0;font-size:clamp(3
 nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:18px 0 6px}
 nav a{font-family:var(--f-head);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;color:var(--muted);
   border:1px solid var(--line);padding:8px 16px;border-radius:999px;background:rgba(34,16,56,.6)}
+.bells{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-head);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-hi);
+  border:1px dashed var(--line-hi);padding:8px 14px;border-radius:999px;background:rgba(15,59,44,.55)}
+.bells svg{width:15px;height:15px}
 nav a[aria-current="page"]{color:var(--night);background:linear-gradient(180deg,var(--gold-hi),var(--gold));border-color:var(--gold)}
 
 .notice{margin:10px auto 0;max-width:720px;text-align:center;font-size:13px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
@@ -83,6 +99,16 @@ h3{font-family:var(--f-head);font-weight:700;font-size:15px;margin:0 0 8px;color
     linear-gradient(160deg,var(--plum-hi),var(--velvet) 70%);
   box-shadow:inset 0 0 0 4px rgba(21,9,35,.55),inset 0 0 0 5px var(--line);
   transition:transform .25s ease,box-shadow .25s ease;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.mcard.gift{background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 6px,transparent 6px 16px),
+    radial-gradient(circle at 50% 40%,rgba(255,255,255,.18),transparent 60%),
+    linear-gradient(160deg,var(--wrap-hi),var(--wrap) 75%)}
+.mcard.gift::before,.mcard.gift::after{content:"";position:absolute;background:linear-gradient(90deg,var(--ribbon-lo),var(--ribbon),var(--ribbon-lo));pointer-events:none}
+.mcard.gift::before{left:calc(50% - 7px);top:0;bottom:0;width:14px}
+.mcard.gift::after{top:calc(42% - 7px);left:0;right:0;height:14px;background:linear-gradient(180deg,var(--ribbon-lo),var(--ribbon),var(--ribbon-lo))}
+.mcard > *{position:relative;z-index:1}
+.mcard .bow{position:absolute;top:4px;left:50%;transform:translateX(-50%);width:46%;height:auto;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.mcard .no{background:rgba(21,9,35,.72);padding:1px 7px;border-radius:5px}
 .mcard svg{width:78%;height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
 .mcard .no{font-family:var(--f-head);font-weight:700;font-size:12px;letter-spacing:.14em;color:var(--gold-hi)}
 .mcard:not(:disabled):hover{transform:translateY(-4px) rotate(var(--tilt,0deg));box-shadow:inset 0 0 0 4px rgba(21,9,35,.55),inset 0 0 0 5px var(--line-hi),0 10px 24px rgba(0,0,0,.45)}
@@ -109,15 +135,25 @@ select{width:auto}
 
 /* Ball draws */
 .draws{display:flex;gap:18px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:18px;padding:16px 18px;background:rgba(21,9,35,.6);margin-bottom:18px}
-.ball{flex:none;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;align-content:center;gap:0;color:#1b0c2c;
-  background:radial-gradient(circle at 34% 28%,#fff8de 0 10%,var(--gold-hi) 30%,var(--gold) 62%,var(--gold-lo) 100%);
+.ball{position:relative;flex:none;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;align-content:center;gap:0;color:#fff;margin-top:10px;
+  --o1:#f7c1c9;--o2:#c8374a;--o3:#6e1220;
+  background:radial-gradient(circle at 34% 28%,#fff 0 7%,var(--o1) 18%,var(--o2) 55%,var(--o3) 100%);
   box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 -6px 12px rgba(80,50,10,.35)}
-.ball svg{width:34px;height:34px;stroke-width:2}
+.ball::before{content:"";position:absolute;top:-9px;left:50%;width:26%;height:12px;transform:translateX(-50%);border-radius:3px 3px 2px 2px;
+  background:linear-gradient(90deg,#8a6a24,#f4dd9b,#8a6a24);box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.ball::after{content:"";position:absolute;top:-17px;left:50%;width:10px;height:10px;transform:translateX(-50%);border:2px solid #d9b45a;border-bottom:0;border-radius:50% 50% 0 0}
+.ball.o1{--o1:#ffe9a8;--o2:#d9b45a;--o3:#7a5a18;color:#2a1608}
+.ball.o2{--o1:#a8f0c8;--o2:#2f8f5b;--o3:#0b3a22}
+.ball.o3{--o1:#c9d8ff;--o2:#3e63c9;--o3:#122a6b}
+.ball.o4{--o1:#ecc6ff;--o2:#8a3fc0;--o3:#3a1062}
+.ball svg{width:34px;height:34px;stroke-width:2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
 .ball b{font-family:var(--f-head);font-weight:700;font-size:13px;letter-spacing:.08em;font-variant-numeric:tabular-nums}
 .ball.empty{background:radial-gradient(circle at 34% 28%,#6a3c9a,var(--plum) 60%,var(--velvet));color:var(--muted)}
-.ball.sm{width:44px;height:44px;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.ball.sm{width:44px;height:44px;margin-top:8px;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.ball.sm::before{top:-6px;height:8px}.ball.sm::after{top:-11px;width:7px;height:7px;border-width:1.5px}
 .ball.sm svg{width:18px;height:18px}
-.ball.xl{width:150px;height:150px;margin:0 auto}
+.ball.xl{width:150px;height:150px;margin:18px auto 0}
+.ball.xl::before{top:-13px;height:16px}.ball.xl::after{top:-25px;width:14px;height:14px;border-width:3px}
 .ball.xl svg{width:56px;height:56px}
 .ball.xl b{font-size:18px}
 .draws .txt{flex:1;min-width:0}
@@ -125,7 +161,7 @@ select{width:auto}
 .draws .k{font-family:var(--f-head);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
 .draws .t{font-family:var(--f-head);font-weight:700;font-size:clamp(18px,3vw,26px);line-height:1.2;text-wrap:balance}
 .draws .dd{color:var(--muted);font-size:15px}
-.recent{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.recent{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
 .recent span{font-size:11px;color:var(--dim);font-family:var(--f-head);letter-spacing:.12em;text-transform:uppercase}
 body.focus .mast{padding-block:14px 0}
 body.focus .eyebrow,body.focus .script,body.focus footer{display:none}
@@ -158,16 +194,18 @@ body.focus main{margin-top:14px}
 .cell.marked .d{color:#f7d7dc}
 .cell.marked::after{content:"";position:absolute;inset:5px;border-radius:50%;border:2px dashed rgba(244,221,155,.55);pointer-events:none}
 .cell.free{background:linear-gradient(180deg,var(--gold-hi),var(--gold));color:#1b0c2c;border-color:var(--gold-hi)}
-.cell.free svg{width:72%;height:auto}
+.cell.free svg{width:66%;height:auto}
 .cell.free .t{font-family:var(--f-head);letter-spacing:.1em}
 .cell.win{outline:3px solid var(--gold-hi);outline-offset:-3px}
 .cell.nope{animation:nope .35s}
 @keyframes nope{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 @media (max-width:520px){.cell .d{display:none}.bingo{gap:4px;padding:6px}}
 .bingobar{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:18px;text-align:center}
-.bingo-btn{font-family:var(--f-display);font-weight:900;font-size:28px;letter-spacing:.06em;padding:12px 40px;border-radius:999px;border:2px solid var(--gold-hi);
-  background:linear-gradient(180deg,#e2546a,var(--berry));color:#fff}
-.bingo-btn:disabled{background:transparent;color:var(--dim);border-color:var(--line);cursor:not-allowed}
+.bingo-btn{font-family:var(--f-display);font-weight:900;font-size:28px;letter-spacing:.06em;padding:12px 40px;border-radius:999px;border:5px solid transparent;color:#fff;
+  background:linear-gradient(180deg,#e2546a,var(--berry)) padding-box,repeating-linear-gradient(45deg,#fff 0 8px,#c8374a 8px 16px) border-box;box-shadow:0 0 22px rgba(200,55,74,.45)}
+.bingo-btn:not(:disabled){animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 34px rgba(244,221,155,.7)}}
+.bingo-btn:disabled{background:transparent;color:var(--dim);border:2px solid var(--line);box-shadow:none;cursor:not-allowed}
 .status{color:var(--muted);font-size:14px;max-width:52ch}
 details{margin-top:16px}
 summary{cursor:pointer;font-family:var(--f-head);font-weight:600;letter-spacing:.08em;color:var(--gold)}
@@ -179,7 +217,7 @@ summary{cursor:pointer;font-family:var(--f-head);font-weight:600;letter-spacing:
 /* Host */
 .stage{text-align:center;padding:26px 18px}
 .stage .k{font-family:var(--f-head);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
-.stage .big{font-family:var(--f-head);font-weight:700;font-size:clamp(26px,5vw,46px);line-height:1.15;margin:10px auto 4px;max-width:22ch;text-wrap:balance;color:var(--ink)}
+.stage .callt{font-family:var(--f-head);font-weight:700;font-size:clamp(26px,5vw,46px);line-height:1.15;margin:10px auto 4px;max-width:22ch;text-wrap:balance;color:var(--ink)}
 .stage .det{color:var(--muted);font-size:16px;min-height:1.5em}
 .stage .meta{font-family:var(--f-head);letter-spacing:.1em;color:var(--muted);font-size:13px;margin:10px 0 16px;font-variant-numeric:tabular-nums}
 .stage .row{justify-content:center}
@@ -216,7 +254,8 @@ summary{cursor:pointer;font-family:var(--f-head);font-weight:600;letter-spacing:
 
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:var(--plum);border:1px solid var(--line-hi);
   color:var(--ink);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);text-align:center}
-footer{text-align:center;margin-top:30px;font-family:var(--f-script);font-size:24px;color:var(--muted)}
+footer{text-align:center;margin-top:34px;font-family:var(--f-script);font-size:30px;color:var(--gold-hi);text-wrap:balance}
+footer small{display:block;font-family:var(--f-head);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -224,6 +263,17 @@ footer{text-align:center;margin-top:30px;font-family:var(--f-script);font-size:2
   <defs>
     <symbol id="mask" viewBox="0 0 120 80">
       <path fill-rule="evenodd" d="M8 40C8 22 30 14 60 26C90 14 112 22 112 40C112 58 92 66 74 56C68 52 52 52 46 56C28 66 8 58 8 40ZM26 40a12 7.5 0 1 0 24 0a12 7.5 0 1 0-24 0ZM70 40a12 7.5 0 1 0 24 0a12 7.5 0 1 0-24 0Z"/>
+    </symbol>
+    <symbol id="holly" viewBox="0 0 44 30">
+      <path fill="#1f7a4a" stroke="#0f3b2c" stroke-width=".8" d="M22 18C17 12 10 13 3 9c3 3 1 6 4 7-2 1-3 3-1 5 3-2 6 0 8-1 1 2 4 2 8-2Z"/>
+      <path fill="#2f8f5b" stroke="#0f3b2c" stroke-width=".8" d="M22 18c5-6 12-5 19-9-3 3-1 6-4 7 2 1 3 3 1 5-3-2-6 0-8-1-1 2-4 2-8-2Z"/>
+      <circle cx="19" cy="19" r="3.4" fill="#c8374a"/><circle cx="25" cy="19.5" r="3.4" fill="#d9475a"/><circle cx="22" cy="24" r="3.4" fill="#b02a3d"/>
+      <circle cx="18" cy="18" r="1" fill="#fff" opacity=".7"/><circle cx="24" cy="18.5" r="1" fill="#fff" opacity=".7"/>
+    </symbol>
+    <symbol id="bow" viewBox="0 0 60 30">
+      <path d="M30 16C22 2 6 2 8 12c1 6 12 6 22 4Z"/><path d="M30 16C38 2 54 2 52 12c-1 6-12 6-22 4Z"/>
+      <path d="M28 16l-8 13 6-2 3 3 1-14Z" opacity=".85"/><path d="M32 16l8 13-6-2-3 3-1-14Z" opacity=".85"/>
+      <circle cx="30" cy="15" r="4.5"/>
     </symbol>
     <symbol id="feather" viewBox="0 0 120 80">
       <path d="M92 26C96 12 104 4 114 0C110 10 106 20 98 28Z"/><path d="M86 28C86 14 92 6 100 2C100 12 96 22 90 30Z" opacity=".7"/>
@@ -233,10 +283,11 @@ footer{text-align:center;margin-top:30px;font-family:var(--f-script);font-size:2
 
 <canvas id="fx" aria-hidden="true"></canvas>
 <div class="wrap">
+  <div class="lights" id="lights" aria-hidden="true"></div>
   <header class="mast">
-    <div class="eyebrow">2026 LSH VA Awards Night · Year-End Celebration</div>
+    <div class="eyerow"><svg class="holly" aria-hidden="true"><use href="#holly"/></svg><div class="eyebrow">2026 LSH VA Awards Night · Christmas Party</div><svg class="holly" aria-hidden="true" style="transform:scaleX(-1)"><use href="#holly"/></svg></div>
     <h1>VA Life Bingo</h1>
-    <div class="script">Masquerade Edition<small>Mask your experiences · Get five in a row · Shout Bingo</small></div>
+    <div class="script">Masquerade Edition<small>Merry &amp; masked · Get five in a row · Shout Bingo</small></div>
     <nav id="nav" aria-label="Views"></nav>
     <div class="notice" id="notice"></div>
     <div id="banner"></div>
@@ -249,10 +300,10 @@ footer{text-align:center;margin-top:30px;font-family:var(--f-script);font-size:2
     <section id="v-rules" hidden>
       <div class="panel">
         <h2>How to play</h2>
-        <p class="sub">Every card on the wall hides a different mix of VA moments behind its mask. Pick one, unmask it under your name, and play along as the host calls.</p>
+        <p class="sub">Every wrapped gift on the wall hides a different mix of VA moments behind its mask. Unwrap one under your name, turn your Bells on if you like, and play along as the host draws ornaments.</p>
         <ol class="steps">
-          <li><b>Pick a mask.</b> Choose any open card on the Card Wall. Once it is yours, nobody else can take it.</li>
-          <li><b>Listen for the call.</b> The host calls out a VA experience, such as “Handled client calls”.</li>
+          <li><b>Unwrap a gift.</b> Pick any wrapped card on the Gift Wall. Once it is yours, nobody else can take it.</li>
+          <li><b>Watch the ornament draw.</b> The host draws a VA experience, such as “Handled client calls”.</li>
           <li><b>Mark your square.</b> Tap the matching square on your card. Only called squares can be marked.</li>
           <li><b>Shout Bingo.</b> Five in a row (across, down, or diagonal) lights up the BINGO button. Tap it and the host checks your card.</li>
         </ol>
@@ -261,13 +312,13 @@ footer{text-align:center;margin-top:30px;font-family:var(--f-script);font-size:2
       </div>
     </section>
   </main>
-  <footer>Mask your experiences, get five in a row, and shout Bingo!</footer>
+  <footer>Merry Christmas and a bright New Year from the LSH family<small>Mask your experiences, get five in a row, and shout Bingo!</small></footer>
 </div>
 
 <div class="overlay" id="claimDlg" hidden role="dialog" aria-modal="true" aria-labelledby="claimTitle">
   <div class="dialog">
     <div id="claimCard"></div>
-    <h2 id="claimTitle">Unmask this card?</h2>
+    <h2 id="claimTitle">Unwrap this card?</h2>
     <p class="sub" id="claimSub" style="margin-inline:auto"></p>
     <form id="claimForm" autocomplete="off">
       <label for="claimName">Your name on the card</label>
@@ -275,7 +326,7 @@ footer{text-align:center;margin-top:30px;font-family:var(--f-script);font-size:2
       <p class="err" id="claimErr" role="alert"></p>
       <div class="row" style="justify-content:center;margin-top:6px">
         <button type="button" class="btn ghost" id="claimCancel">Keep looking</button>
-        <button type="submit" class="btn primary" id="claimGo">Unmask it</button>
+        <button type="submit" class="btn primary" id="claimGo">Unwrap it</button>
       </div>
     </form>
   </div>
@@ -334,7 +385,10 @@ function cardFor(no){
   for (let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
   const c = a.slice(0,24); c.splice(FREE,0,-1); return (cardCache[no]=c);
 }
-function maskLook(no){const r=rng(no*31+7);return{col:MASK_COLORS[Math.floor(r()*MASK_COLORS.length)],feather:r()>.4,tilt:(r()*8-4).toFixed(1)}}
+const WRAPS = [["#9e1f33","#d2475c","#f4dd9b","#b58b33"],["#145a3c","#2b8a5e","#e2546a","#9e1f33"],["#3a1766","#6a35a8","#f4dd9b","#b58b33"],["#0f2f5c","#2f5fa6","#f6f2ff","#a9b4cc"],["#7a1a2a","#b8344a","#7fd3a6","#2f8f5b"]];
+function maskLook(no){const r=rng(no*31+7);return{col:MASK_COLORS[Math.floor(r()*MASK_COLORS.length)],feather:r()>.4,tilt:(r()*8-4).toFixed(1),wrap:WRAPS[Math.floor(r()*WRAPS.length)]}}
+function wrapVars(no){const w=maskLook(no).wrap;return `--wrap:${w[0]};--wrap-hi:${w[1]};--ribbon:${w[2]};--ribbon-lo:${w[3]}`}
+const bowSvg = no => `<svg class="bow" viewBox="0 0 60 30" aria-hidden="true" style="fill:${maskLook(no).wrap[2]}"><use href="#bow"/></svg>`;
 function maskSvg(no){const m=maskLook(no);
   return `<svg viewBox="0 0 120 80" aria-hidden="true"><defs><linearGradient id="g${no}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${m.col[1]}"/><stop offset="1" stop-color="${m.col[0]}"/></linearGradient></defs>
   ${m.feather?`<use href="#feather" fill="${m.col[1]}"/>`:""}<use href="#mask" fill="url(#g${no})" stroke="#d9b45a" stroke-width="1.2"/></svg>`;}
@@ -345,7 +399,17 @@ function linesOf(set){return LINES.filter(l=>l.every(p=>set.has(p)))}
 /* ---------- State ---------- */
 const S = { mode:"loading", uid:null, host:false, myName:"",
   game:{round:1,called:[],winners:[],deck:60}, cards:{}, players:{}, me:null };
-let B = null, seenWinners = -1, lastCalled = -1;
+let B = null, seenWinners = -1, lastCalled = -1, heardCalls = -1;
+let bellsOn = false; try { bellsOn = localStorage.getItem("bells")==="1"; } catch(e){}
+let actx = null;
+function audio(){ if (!actx) { const A = window.AudioContext||window.webkitAudioContext; if (!A) return null; actx = new A(); } if (actx.state==="suspended") actx.resume(); return actx; }
+function tone(ac, f, t0, dur, type, vol){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.value=f;
+  g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(vol,t0+.01); g.gain.exponentialRampToValueAtTime(.0001,t0+dur); o.connect(g).connect(ac.destination); o.start(t0); o.stop(t0+dur+.05); }
+function chime(){ if (!bellsOn) return; const ac = audio(); if (!ac) return; const t = ac.currentTime;
+  [[1318.5,0],[1568,.12],[2093,.24]].forEach(([f,d])=>{ tone(ac,f,t+d,1.2,"sine",.16); tone(ac,f*2.76,t+d,.5,"sine",.04); });
+  for (let i=0;i<6;i++) tone(ac, 5200+Math.random()*1800, t+.02+i*.045, .07, "triangle", .03); }
+function fanfare(){ if (!bellsOn) return; const ac = audio(); if (!ac) return; const t = ac.currentTime;
+  [659.3,659.3,659.3,0,659.3,659.3,659.3,0,659.3,784,523.3,587.3,659.3].forEach((f,i)=>{ if (f) { tone(ac,f,t+i*.16,.35,"triangle",.12); tone(ac,f*2,t+i*.16,.25,"sine",.04); } }); }
 
 function validMarks(me, card){
   const set = new Set([FREE]);
@@ -363,10 +427,12 @@ function currentView(){
   return S.me && S.me.card ? "card" : "wall";
 }
 function renderNav(v){
-  const tabs = [["wall","Card Wall"],["card","My Card"]];
+  const tabs = [["wall","Gift Wall"],["card","My Card"]];
   if (S.host) tabs.push(["host","Host Stage"]);
   tabs.push(["rules","How to Play"]);
-  document.getElementById("nav").innerHTML = tabs.map(([k,l])=>`<a href="#${k}"${k===v?' aria-current="page"':""}>${l}</a>`).join("");
+  document.getElementById("nav").innerHTML = tabs.map(([k,l])=>`<a href="#${k}"${k===v?' aria-current="page"':""}>${l}</a>`).join("")
+    + `<button type="button" class="bells" id="bellsBtn" aria-pressed="${bellsOn}"><i data-lucide="${bellsOn?"bell-ring":"bell-off"}"></i>Bells ${bellsOn?"on":"off"}</button>`;
+  document.getElementById("bellsBtn").onclick = () => { bellsOn = !bellsOn; try{localStorage.setItem("bells", bellsOn?"1":"0")}catch(e){} if (bellsOn) chime(); render(); };
 }
 function render(){
   const v = currentView();
@@ -377,33 +443,34 @@ function render(){
   if (v==="card") renderCard();
   if (v==="host") renderHost();
   document.body.classList.toggle("focus", v==="card");
+  if (S.mode!=="loading") { if (heardCalls >= 0 && S.game.called.length > heardCalls) chime(); heardCalls = S.game.called.length; }
   drawIcons();
 }
 function drawIcons(){ try { if (window.lucide) window.lucide.createIcons({attrs:{"aria-hidden":"true"}}); } catch(e){} }
 function renderBanner(){
   const w = S.game.winners||[], el = document.getElementById("banner");
-  if (seenWinners >= 0 && w.length > seenWinners && S.mode!=="loading") burst();
+  if (seenWinners >= 0 && w.length > seenWinners && S.mode!=="loading") { burst(); fanfare(); }
   if (S.mode!=="loading") seenWinners = w.length;
   const last = w[w.length-1];
-  el.innerHTML = last ? `<div class="banner"><div class="k">${last.kind==="raffle"?"Raffle winner":"Round "+last.round+" Bingo winner"}</div><div class="v">${esc(last.name)} · Card No. ${pad(last.card)}</div></div>` : "";
+  el.innerHTML = last ? `<div class="banner"><div class="k">Merry Christmas · ${last.kind==="raffle"?"Raffle winner":"Round "+last.round+" Bingo winner"}</div><div class="v">${esc(last.name)} · Card No. ${pad(last.card)}</div></div>` : "";
 }
 function deckCount(){const nums=Object.keys(S.cards).map(Number);return Math.max(S.game.deck||60,...nums,0)}
 
 function renderWall(){
   const n = deckCount(), taken = Object.keys(S.cards).length, mine = S.me && S.me.card;
-  let html = `<div class="panel"><div class="wallhead"><div><h2>The Card Wall</h2>
-    <p class="sub" style="margin:0">Every mask hides a different card. Choose one and claim it under your name. Each card belongs to one guest only.</p></div>
-    <div class="row"><span class="count"><b>${n-taken}</b> of ${n} still masked</span>
-    <button class="btn primary" id="luckyBtn"${n-taken?"":" disabled"}>Choose for me</button></div></div>
+  let html = `<div class="panel"><div class="wallhead"><div><h2>The Gift Wall</h2>
+    <p class="sub" style="margin:0">Every wrapped mask hides a different bingo card. Pick a gift and unwrap it under your name. Each card belongs to one guest only.</p></div>
+    <div class="row"><span class="count"><b>${n-taken}</b> of ${n} still wrapped</span>
+    <button class="btn primary" id="luckyBtn"${n-taken?"":" disabled"}>Surprise me</button></div></div>
     <div class="wall">`;
   for (let i=1;i<=n;i++){
     const c = S.cards[i], isMine = c && c.owner===S.uid, look = maskLook(i);
     const cls = isMine ? "mine" : c ? "taken" : "";
     const lbl = isMine ? `Card ${i}, your card` : c ? `Card ${i}, taken by ${c.name}` : `Card ${i}, masked`;
-    html += `<button class="mcard ${cls}" data-no="${i}" style="--tilt:${look.tilt}deg" aria-label="${esc(lbl)}"${c&&!isMine?" disabled":""}>
-      ${maskSvg(i)}<span class="no">No. ${pad(i)}</span>${c?`<span class="who">${isMine?"Yours · ":""}${esc(c.name)}</span>`:""}</button>`;
+    html += `<button class="mcard gift ${cls}" data-no="${i}" style="--tilt:${look.tilt}deg;${wrapVars(i)}" aria-label="${esc(lbl)}"${c&&!isMine?" disabled":""}>
+      ${bowSvg(i)}${maskSvg(i)}<span class="no">No. ${pad(i)}</span>${c?`<span class="who">${isMine?"Yours · ":""}${esc(c.name)}</span>`:""}</button>`;
   }
-  html += `</div><div class="legend"><span><i style="background:var(--plum-hi)"></i>Masked: open to claim</span><span><i style="background:#4a3f55"></i>Claimed by a guest</span><span><i style="background:var(--gold)"></i>Your card</span></div></div>`;
+  html += `</div><div class="legend"><span><i style="background:linear-gradient(90deg,#9e1f33 40%,#f4dd9b 40% 60%,#9e1f33 60%)"></i>Wrapped: open to claim</span><span><i style="background:#4a3f55"></i>Claimed by a guest</span><span><i style="background:var(--gold)"></i>Your card</span></div></div>`;
   const el = document.getElementById("v-wall"); el.innerHTML = html;
   el.querySelectorAll(".mcard").forEach(b => b.onclick = () => {
     const no = +b.dataset.no; if (S.me && S.me.card===no){location.hash="card";return;} openClaim(no);
@@ -414,7 +481,7 @@ function renderWall(){
 
 function ball(item, n, cls){
   if (item===undefined) return `<div class="ball empty ${cls||""}"><i data-lucide="venetian-mask"></i></div>`;
-  return `<div class="ball ${cls||""}" title="${esc(ITEMS[item][0])}"><i data-lucide="${ICONS[item]}"></i>${n?`<b>${pad(n)}</b>`:""}</div>`;
+  return `<div class="ball o${item%5} ${cls||""}" title="${esc(ITEMS[item][0])}"><i data-lucide="${ICONS[item]}"></i>${n?`<b>${pad(n)}</b>`:""}</div>`;
 }
 function callingStrip(){
   const c = S.game.called, last = c[c.length-1], fresh = lastCalled!==c.length ? "reveal" : "";
@@ -426,7 +493,7 @@ function callingStrip(){
     ${recent.length?`<div class="recent"><span>Previous</span>${recent.map((x,i)=>ball(x,c.length-1-i,"sm")).join("")}</div>`:""}</div></div>`;
 }
 function cellHtml(item,i,cls){
-  if (item<0) return `<div class="cell free ${cls}"><svg viewBox="0 0 120 80" aria-hidden="true"><use href="#mask" fill="#1b0c2c"/></svg><span class="t">Free</span></div>`;
+  if (item<0) return `<div class="cell free ${cls}"><svg viewBox="0 0 44 30" aria-hidden="true" style="width:46%"><use href="#holly"/></svg><svg viewBox="0 0 120 80" aria-hidden="true"><use href="#mask" fill="#1b0c2c"/></svg><span class="t">Free</span></div>`;
   const [t,d] = ITEMS[item];
   return `<button type="button" class="cell ${cls}" data-p="${i}" aria-pressed="${cls.includes("marked")}"><i data-lucide="${ICONS[item]}" class="ic"></i><span class="t">${esc(t)}</span>${d?`<span class="d">${esc(d)}</span>`:""}</button>`;
 }
@@ -434,8 +501,8 @@ function renderCard(){
   const el = document.getElementById("v-card"), me = S.me;
   if (!me || !me.card){
     el.innerHTML = `<div class="panel" style="text-align:center"><h2>You have not picked a card yet</h2>
-      <p class="sub" style="margin-inline:auto">Head to the Card Wall, choose any masked card, and claim it under your name.</p>
-      <a class="btn primary big" href="#wall" style="text-decoration:none;display:inline-block">Go to the Card Wall</a></div>`;
+      <p class="sub" style="margin-inline:auto">Head to the Gift Wall, pick any wrapped card, and unwrap it under your name.</p>
+      <a class="btn primary big" href="#wall" style="text-decoration:none;display:inline-block">Go to the Gift Wall</a></div>`;
     return;
   }
   const card = cardFor(me.card), called = new Set(S.game.called), valid = validMarks(me, card);
@@ -462,7 +529,7 @@ function renderCard(){
     <div class="row" style="justify-content:center;margin-top:18px">${canSwap?`<button class="btn ghost" id="releaseBtn">Give back this card</button>`:`<span class="empty">Cards lock once the host starts calling.</span>`}</div></div>`;
   el.querySelectorAll("button.cell").forEach(c => c.onclick = () => toggleMark(+c.dataset.p, c));
   document.getElementById("bingoBtn").onclick = callBingo;
-  const rb = document.getElementById("releaseBtn"); if (rb) armButton(rb, "Tap again to release", async () => { await B.release(me.card, S.uid); toast("Card returned to the wall."); location.hash="wall"; });
+  const rb = document.getElementById("releaseBtn"); if (rb) armButton(rb, "Tap again to release", async () => { await B.release(me.card, S.uid); toast("Card wrapped back up and returned to the wall."); location.hash="wall"; });
 }
 
 function miniCard(p){
@@ -478,7 +545,7 @@ function renderHost(){
   el.innerHTML = `<div class="panel stage">
       <div class="k">Round ${g.round} · ${last===undefined?"Ready":"Now calling"}</div>
       ${ball(last, g.called.length, "xl "+(lastCalled!==g.called.length?"reveal":""))}
-      <div class="big ${lastCalled!==g.called.length?"reveal":""}">${last===undefined?"Press Call next to begin":esc(ITEMS[last][0])}</div>
+      <div class="callt ${lastCalled!==g.called.length?"reveal":""}">${last===undefined?"Press Call next to begin":esc(ITEMS[last][0])}</div>
       <div class="det">${last!==undefined&&ITEMS[last][1]?esc(ITEMS[last][1]):""}</div>
       <div class="meta">${g.called.length} of ${ITEMS.length} called · ${guests.length} guests holding cards</div>
       <div class="row"><button class="btn primary big" id="hNext"${remaining?"":" disabled"}>Call next</button>
@@ -554,9 +621,9 @@ let claimNo = null;
 function openClaim(no){
   claimNo = no;
   const dlg = document.getElementById("claimDlg");
-  document.getElementById("claimCard").innerHTML = `<div class="mcard" id="claimFace">${maskSvg(no)}<span class="no">No. ${pad(no)}</span></div>`;
+  document.getElementById("claimCard").innerHTML = `<div class="mcard gift" id="claimFace" style="${wrapVars(no)}">${bowSvg(no)}${maskSvg(no)}<span class="no">No. ${pad(no)}</span></div>`;
   const has = S.me && S.me.card, locked = has && S.game.called.length>0;
-  document.getElementById("claimTitle").textContent = `Unmask card No. ${pad(no)}?`;
+  document.getElementById("claimTitle").textContent = `Unwrap card No. ${pad(no)}?`;
   document.getElementById("claimSub").textContent = locked ? `You already hold card No. ${pad(S.me.card)}, and cards lock once calling starts.`
     : has ? `This swaps your current card No. ${pad(S.me.card)} for this one.` : "It will be yours for the night. Nobody else can claim it.";
   document.getElementById("claimGo").disabled = !!locked;
@@ -581,7 +648,7 @@ document.getElementById("claimForm").addEventListener("submit", async e => {
     setTimeout(()=>{ closeClaim(); go.disabled=false; location.hash = "card"; render(); toast(`Card No. ${pad(S.me.card)} is yours.`); burst(); }, 800);
   } catch (x) {
     go.disabled = false;
-    err.textContent = x && x.code==="taken" ? "Another guest just claimed this card. Pick a different mask."
+    err.textContent = x && x.code==="taken" ? "Another guest just claimed this card. Pick a different gift."
       : x && x.code==="invalid_argument" ? "You can view the wall, but your access does not allow claiming. Ask the host for Contributor access."
       : "That claim did not go through. Try again in a moment.";
   }
@@ -681,19 +748,29 @@ window.addEventListener("hashchange", render);
 document.getElementById("patterns").innerHTML = [["Horizontal",[10,11,12,13,14]],["Vertical",[2,7,12,17,22]],["Diagonal",[0,6,12,18,24]]]
   .map(([n,on])=>`<div class="pat"><div class="g">${Array.from({length:25},(_,i)=>`<i class="${on.includes(i)?"on":""}"></i>`).join("")}</div>${n}</div>`).join("");
 
+/* ---------- String lights ---------- */
+(function(){ const el = document.getElementById("lights"), n = 26, cols = ["#ff4d5e","#ffd166","#3ddc84","#5aa9ff","#ff8fd8"];
+  let bulbs = ""; for (let i=0;i<n;i++){ const x = (i+.5)/n*100, y = 14 + Math.sin((i+.5)/n*Math.PI*6 - Math.PI/2)*-8 + 8;
+    bulbs += `<i class="bulb" style="left:calc(${x}% - 5px);top:${y}px;--c:${cols[i%cols.length]};--del:${(i%5)*.35}s;--d:${2+(i%3)*.6}s"></i>`; }
+  el.innerHTML = `<svg class="wire" viewBox="0 0 100 46" preserveAspectRatio="none"><path d="${Array.from({length:61},(_,k)=>{const x=k/60*100,y=14+Math.sin(k/60*Math.PI*6-Math.PI/2)*-8+6;return (k?"L":"M")+x.toFixed(2)+" "+y.toFixed(2)}).join("")}" fill="none" stroke="#3b5a3a" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>` + bulbs;
+})();
+
 /* ---------- Ambient snow + gold dust, confetti bursts ---------- */
 const fx = document.getElementById("fx"), ctx = fx.getContext("2d");
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let flakes = [], bits = [];
 function sizeFx(){ fx.width = innerWidth*devicePixelRatio; fx.height = innerHeight*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
 sizeFx(); addEventListener("resize", sizeFx);
-for (let i=0;i<70;i++) flakes.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2+.6,v:Math.random()*.4+.15,g:Math.random()<.3});
+for (let i=0;i<90;i++) flakes.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2+.6,v:Math.random()*.4+.15,g:Math.random()<.2,flake:Math.random()<.22});
 function burst(){ if (reduceMotion) return; const cols=["#f4dd9b","#d9b45a","#c8374a","#2f8f5b","#ffffff"];
   for (let i=0;i<140;i++) bits.push({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:Math.random()*-11-2,c:cols[i%cols.length],l:120,s:Math.random()*5+3,a:Math.random()*6}); }
 function tick(){
   ctx.clearRect(0,0,innerWidth,innerHeight);
   for (const f of flakes){ f.y+=f.v; f.x+=Math.sin(f.y/40)*.2; if (f.y>innerHeight){f.y=-4;f.x=Math.random()*innerWidth;}
-    ctx.fillStyle = f.g ? "rgba(244,221,155,.55)" : "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.fill(); }
+    if (f.flake) { ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.y/120); ctx.strokeStyle="rgba(255,255,255,.55)"; ctx.lineWidth=1.1; ctx.beginPath();
+      for (let k=0;k<6;k++){ ctx.rotate(Math.PI/3); ctx.moveTo(0,0); ctx.lineTo(0,f.r*3); ctx.moveTo(0,f.r*1.8); ctx.lineTo(f.r*.8,f.r*2.5); ctx.moveTo(0,f.r*1.8); ctx.lineTo(-f.r*.8,f.r*2.5); }
+      ctx.stroke(); ctx.restore(); continue; }
+    ctx.fillStyle = f.g ? "rgba(244,221,155,.55)" : "rgba(255,255,255,.45)"; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.fill(); }
   bits = bits.filter(b=>b.l-->0);
   for (const b of bits){ b.vy+=.25; b.x+=b.vx; b.y+=b.vy; b.a+=.2; ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(b.a); ctx.fillStyle=b.c; ctx.globalAlpha=Math.min(1,b.l/40); ctx.fillRect(-b.s/2,-b.s/4,b.s,b.s/2); ctx.restore(); }
   requestAnimationFrame(tick);
