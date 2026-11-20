@@ -184,10 +184,103 @@ select{width:auto}
 .draws .dd{color:var(--muted);font-size:15px}
 .recent{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
 .recent span{font-size:11px;color:var(--dim);font-family:var(--f-head);letter-spacing:.12em;text-transform:uppercase}
-body.focus .mast{padding-block:14px 0}
-body.focus .eyebrow,body.focus .script,body.focus footer{display:none}
-body.focus h1{font-size:clamp(28px,5vw,40px)}
-body.focus main{margin-top:14px}
+/* Compact header on the card and host views, so the playing area gets the whole screen */
+body.focus .lights,body.focus .eyerow,body.focus .script,body.focus footer{display:none}
+body.focus .wrap{max-width:1500px}
+body.focus .mast{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;padding-block:max(8px,1.2vh) 0;text-align:left}
+body.focus h1{font-size:clamp(24px,2.6vw,34px);margin:0}
+body.focus nav{margin:0;justify-content:flex-end}
+body.focus nav a,body.focus .bells{padding:6px 12px;font-size:12px}
+body.focus .notice,body.focus #banner{flex-basis:100%;margin:0}
+body.focus .notice{padding:4px 10px;font-size:12px}
+body.focus .banner{margin:0 auto;padding:6px 12px}
+body.focus .banner .v{font-size:16px}
+body.focus main{margin-top:max(8px,1.2vh)}
+@media (max-width:640px){
+  body.focus .mast{flex-direction:column;align-items:stretch;gap:6px}
+  body.focus h1{text-align:center}
+  body.focus nav{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:2px;scrollbar-width:none}
+  body.focus nav::-webkit-scrollbar{display:none}
+  body.focus nav a,body.focus .bells{flex:none}
+  body.focus .mast > *{min-width:0;max-width:100%}
+  .play .patbar .k{display:inline;margin-right:8px}.play .patbar .v{display:inline}
+}
+@media (max-height:720px){
+  .play .recent{display:none}
+  .play .draws>.ball{width:48px;height:48px}
+  .play .draws .t{font-size:16px}
+  .play .bingo-btn{font-size:20px;padding:5px 22px}
+}
+
+/* ---------- One-screen card view ----------
+   .play is exactly one screen tall (JS measures where it starts as --playTop).
+   The card lives in a size container and takes the largest square-ish size that fits. */
+.play{display:grid;gap:max(6px,1vh);min-height:300px;
+  height:calc(100vh - var(--playTop,150px) - 10px);height:calc(100dvh - var(--playTop,150px) - 10px);
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"draws" "pat" "board" "btn"}
+.p-draws{grid-area:draws;min-width:0}.p-pat{grid-area:pat;min-width:0}.p-btn{grid-area:btn}
+.p-called{display:none}
+.p-board{grid-area:board;min-height:0;min-width:0;container-type:size;container-name:board;display:flex;align-items:center;justify-content:center}
+.boardin{--bw:min(100cqw,calc((100cqh - 48px) / 1.12));width:var(--bw)}
+.play .draws{margin:0;padding:max(8px,1vh) 14px;gap:14px;flex-wrap:nowrap}
+.play .draws>.ball{width:clamp(56px,9vh,96px);height:clamp(56px,9vh,96px);margin-top:9px}
+.play .draws>.ball svg{width:clamp(20px,3.2vh,34px);height:clamp(20px,3.2vh,34px)}
+.play .draws .t{font-size:clamp(16px,2.6vh,26px)}
+.play .draws .dd{font-size:clamp(12px,1.7vh,15px)}
+.play .recent{margin-top:2px;gap:8px}
+.play .recent .ball.sm{width:clamp(28px,4.2vh,44px);height:clamp(28px,4.2vh,44px)}
+.play .recent .ball.sm svg{width:45%;height:45%}
+.play .patbar{margin:0;padding:6px 12px;gap:12px}
+.play .patbar .g{grid-template-columns:repeat(5,8px)!important;gap:2px}
+.play .patbar .g i{width:8px!important;height:8px!important}
+.play .patbar .v{font-size:clamp(15px,2.1vh,20px)}
+.play .patbar .h{font-size:12px}
+.play .ribbon{margin-bottom:6px;align-items:center}
+.play .ribbon .name{font-size:clamp(20px,calc(var(--bw) * .055),36px)}
+.play .ribbon .no{font-size:clamp(11px,calc(var(--bw) * .022),15px)}
+.play .bingo{gap:calc(var(--bw) * .012);padding:calc(var(--bw) * .016)}
+.play .bingo .hd{font-size:calc(var(--bw) * .075);line-height:1;padding:0 0 calc(var(--bw) * .008)}
+.play .cell{padding:calc(var(--bw) * .006);gap:calc(var(--bw) * .004);border-radius:calc(var(--bw) * .012)}
+.play .cell .t{font-size:clamp(8px,calc(var(--bw) * .026),17px)}
+.play .cell .ic{width:clamp(14px,calc(var(--bw) * .055),40px);height:clamp(14px,calc(var(--bw) * .055),40px)}
+.play .cell .d{display:block;font-size:clamp(7px,calc(var(--bw) * .019),13px)}
+.play .cell.marked::after{inset:calc(var(--bw) * .008)}
+@container board (max-width:560px) or (max-height:677px){.play .cell .d{display:none}}
+@container board (max-width:300px) or (max-height:386px){.play .cell .ic{display:none}}
+.play .bingobar{margin:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px 14px}
+.play .bingo-btn{font-size:clamp(20px,3vh,28px);padding:max(6px,.8vh) 28px}
+.play .status{font-size:13px;max-width:40ch;text-align:left}
+.below{margin-top:16px}
+.p-called h3{margin:0 0 6px}
+@media (max-width:640px){
+  .play .draws .dd,.play .patbar .h,.play .recent span{display:none}
+  .play .status{text-align:center;flex-basis:100%}
+}
+/* Wide screens: draws, pattern and the BINGO button in a side column, card filling the rest */
+@media (min-width:640px) and (min-aspect-ratio:5/4){
+  .play{grid-template-columns:minmax(260px,360px) minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr);
+    grid-template-areas:"draws board" "pat board" "btn board" "called board";column-gap:max(16px,1.6vw)}
+  .play .draws{flex-direction:column;text-align:center;padding:max(10px,1.4vh) 14px}
+  .play .draws .txt{width:100%}
+  .play .recent{justify-content:center}
+  .play .bingobar{flex-direction:column}
+  .play .status{text-align:center}
+  .p-called{display:block;min-height:0;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(21,9,35,.45)}
+  .p-called .chips{margin-top:0}
+  .below .port-only{display:none}
+}
+
+/* ---------- One-screen host stage (for screen sharing) ---------- */
+body.focus #v-host .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(4px,1vh,12px);min-height:440px;
+  height:calc(100vh - var(--playTop,150px) - 10px);height:calc(100dvh - var(--playTop,150px) - 10px);padding-block:clamp(10px,2vh,24px)}
+body.focus #v-host .stage .ball.xl{width:clamp(84px,17vh,180px);height:clamp(84px,17vh,180px);margin:clamp(14px,2.6vh,28px) auto 0}
+body.focus #v-host .stage .ball.xl svg{width:36%;height:36%}
+body.focus #v-host .stage .ball.xl b{font-size:clamp(13px,1.8vh,20px)}
+body.focus #v-host .stage .callt{font-size:clamp(22px,min(4.4vw,5.4vh),58px);margin:0 auto}
+body.focus #v-host .stage .det{font-size:clamp(13px,1.9vh,19px);min-height:0}
+body.focus #v-host .stage .patbar{margin:0 auto;width:min(100%,460px)}
+body.focus #v-host .stage .meta{margin:0}
+body.focus #v-host .stage .row{margin:0!important}
 /* Calling strip */
 .calling{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px 16px;background:rgba(21,9,35,.6);margin-bottom:16px}
 .calling .n{font-family:var(--f-display);font-weight:900;font-size:28px;color:var(--gold-hi);min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
@@ -661,8 +754,10 @@ function renderNav(v){
 }
 let renderQueued = false;
 function render(){ if (renderQueued) return; renderQueued = true; requestAnimationFrame(()=>{ renderQueued = false; renderNow(); }); }
+let shownView = null;
 function renderNow(){
   const v = currentView();
+  if (v !== shownView){ if (shownView !== null) window.scrollTo(0,0); shownView = v; }
   renderNav(v);
   VIEWS.forEach(k => document.getElementById("v-"+k).hidden = k!==v);
   renderBanner();
@@ -671,11 +766,23 @@ function renderNow(){
   if (v==="host") renderHost();
   if (v==="shout") renderShout();
   renderScreen(v==="screen");
-  document.body.classList.toggle("focus", v==="card");
+  document.body.classList.toggle("focus", v==="card" || v==="host");
   document.body.classList.toggle("screenmode", v==="screen");
   if (S.mode!=="loading") { if (heardCalls >= 0 && S.game.called.length > heardCalls) chime(); heardCalls = S.game.called.length; lastCalled = S.game.called.length; }
   drawIcons();
+  fitToScreen();
 }
+/* Measure where the playing area starts so it can be exactly one screen tall */
+let fitTop = -1;
+function fitToScreen(){
+  const el = document.querySelector("#v-card:not([hidden]) .play, #v-host:not([hidden]) .stage");
+  if (!el) return;
+  const top = Math.round(el.getBoundingClientRect().top + window.scrollY);
+  if (top !== fitTop){ fitTop = top; document.documentElement.style.setProperty("--playTop", top + "px"); }
+}
+try { new ResizeObserver(() => fitToScreen()).observe(document.querySelector(".mast")); } catch(e){}
+addEventListener("resize", fitToScreen);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitToScreen);
 window.drawIcons = drawIcons;
 function drawIcons(){ try { if (window.lucide) window.lucide.createIcons({attrs:{"aria-hidden":"true"}}); } catch(e){} }
 function renderBanner(){
@@ -744,13 +851,21 @@ function renderCard(){
     const cls = [called.has(item)?"called":"", valid.has(i)&&item>=0?"marked":"", wins.has(i)?"win":"", target.size<25&&target.has(i)?"target":""].join(" ");
     grid += cellHtml(item,i,cls);
   });
-  el.innerHTML = `<div class="cardwrap">${callingStrip()}
-    ${patBar("Round "+S.game.round+" winning pattern")}
-    <div class="ribbon"><span class="name">${esc(me.name)}</span><span class="no">Card No. ${pad(me.card)}</span></div>
-    <div class="bingo" id="bingoGrid">${grid}</div>
-    <div class="bingobar"><button class="bingo-btn" id="bingoBtn"${canBingo?"":" disabled"}>BINGO!</button><div class="status">${status}</div></div>
-    <details><summary>Called so far (${S.game.called.length} of ${ITEMS.length})</summary><div class="chips">${S.game.called.map((x,i)=>`<span class="chip on"><span class="i">${i+1}</span>${esc(ITEMS[x][0])}</span>`).join("")||'<span class="empty">Nothing called yet.</span>'}</div></details>
-    <div class="row" style="justify-content:center;margin-top:18px">${canSwap?`<button class="btn ghost" id="releaseBtn">Give back this card</button>`:`<span class="empty">Cards lock once the host starts calling.</span>`}</div></div>`;
+  const calledChips = S.game.called.map((x,i)=>`<span class="chip on"><span class="i">${i+1}</span>${esc(ITEMS[x][0])}</span>`).join("")||'<span class="empty">Nothing called yet.</span>';
+  el.innerHTML = `<div class="play">
+    <div class="p-draws">${callingStrip()}</div>
+    <div class="p-pat">${patBar("Round "+S.game.round+" winning pattern")}</div>
+    <div class="p-board"><div class="boardin">
+      <div class="ribbon"><span class="name">${esc(me.name)}</span><span class="no">Card No. ${pad(me.card)}</span></div>
+      <div class="bingo" id="bingoGrid">${grid}</div>
+    </div></div>
+    <div class="p-btn bingobar"><button class="bingo-btn" id="bingoBtn"${canBingo?"":" disabled"}>BINGO!</button><div class="status">${status}</div></div>
+    <div class="p-called"><h3>Called so far (${S.game.called.length} of ${ITEMS.length})</h3><div class="chips">${calledChips}</div></div>
+  </div>
+  <div class="below">
+    <details class="port-only"><summary>Called so far (${S.game.called.length} of ${ITEMS.length})</summary><div class="chips">${calledChips}</div></details>
+    <div class="row" style="justify-content:center;margin-top:14px">${canSwap?`<button class="btn ghost" id="releaseBtn">Give back this card</button>`:`<span class="empty">Cards lock once the host starts calling.</span>`}</div>
+  </div>`;
   el.querySelectorAll("button.cell").forEach(c => c.onclick = () => toggleMark(+c.dataset.p, c));
   document.getElementById("bingoBtn").onclick = callBingo;
   const rb = document.getElementById("releaseBtn"); if (rb) armButton(rb, "Tap again to release", async () => { await B.release(me.card, S.uid); toast("Your card was returned. Register again any time."); location.hash="join"; });
