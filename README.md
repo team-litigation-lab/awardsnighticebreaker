@@ -1,13 +1,21 @@
 # VA Life Bingo
 
-Year-end party icebreaker and raffle game for the 2026 LSH VA Awards Night.
+A Christmas party icebreaker and raffle game for the 2026 LSH VA Awards Night.
 
 `bingo.html` is the source of the published Claude artifact. It has four views:
 
-- **Gift Wall**: every bingo card is gift-wrapped behind a masquerade mask. Each guest unwraps one under their name. A claimed card can't be taken by anyone else.
-- **My Card**: a large card with an icon on every square, the current ball draw, and the last five draws. Guests can mark only squares that have been called. A full row, column, or diagonal turns on the BINGO button.
-- **Host Stage**: only editors see this view. The host draws the next call, can undo a call, starts new rounds, checks Bingo claims against a mini card, confirms winners, and runs the raffle draw.
-- **How to Play**: the rules and the winning patterns.
+- **Get My Card**: guests type their name and tap *Unwrap my card*. They get their own card right away.
+  - No two cards have the same set of squares, and each card number has its own ornament design.
+  - The game holds 100–150 cards. The host sets the limit.
+- **My Card**: a large card with an icon on every square, the current ornament draw and the last five draws, plus the winning pattern for this round.
+- **Host Stage**: only editors see this view. The host can:
+  - draw the next call, undo the last call, or start a new round;
+  - change the pattern before the first call of a round;
+  - check Bingo claims, which appear in the order they arrive;
+  - confirm winners and run the raffle draw.
+- **How to Play**: the rules and every pattern.
 
-Each card number always produces the same card. A card uses 24 of the 29 VA experiences, with a FREE square in the center.
+Each new round automatically picks a pattern that hasn't been used yet. The patterns are Any line, Four corners, Postage stamp, Little plus, Little X, Any 2×2 block, Any diagonal and Middle cross.
+Each pattern needs only about 4 called squares. In simulations with 150 players, the first Bingo came after 5–9 draws on average.
+
 Opening the file outside claude.ai starts a local preview with example guests.

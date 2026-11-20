@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;600;700&family=Pinyon+Script&family=Mulish:wght@400;600;700;800&display=swap">
 <style>
 /* Layout: a masquerade ballroom at night. Masthead, then one view at a time:
-   the Card Wall (face-down masked cards), My Card, Host stage, How to play. */
+   the Gift Wall (gift-wrapped ornament cards), My Card, Host stage, How to play. */
 :root{
   --night:#150923; --velvet:#221038; --plum:#341755; --plum-hi:#4a2276;
   --line:rgba(217,180,90,.32); --line-hi:rgba(244,221,155,.7);
@@ -92,6 +92,7 @@ h3{font-family:var(--f-head);font-weight:700;font-size:15px;margin:0 0 8px;color
 .count{font-family:var(--f-head);font-size:13px;letter-spacing:.08em;color:var(--muted)}
 .count b{color:var(--gold-hi);font-size:18px}
 .wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px}
+@media (max-width:520px){.wall{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:9px}.mcard .no{font-size:11px;letter-spacing:.08em}}
 .mcard{position:relative;aspect-ratio:3/4;max-width:100%;border-radius:12px;border:1px solid var(--line);padding:0;overflow:hidden;
   background:
     radial-gradient(circle at 50% 42%,rgba(244,221,155,.16),transparent 55%),
@@ -110,6 +111,9 @@ h3{font-family:var(--f-head);font-weight:700;font-size:15px;margin:0 0 8px;color
 .mcard .bow{position:absolute;top:4px;left:50%;transform:translateX(-50%);width:46%;height:auto;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
 .mcard .no{background:rgba(21,9,35,.72);padding:1px 7px;border-radius:5px}
 .mcard svg{width:78%;height:auto;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.mcard svg.orn{width:58%;margin-top:14%;transform-origin:50% 0}
+.mcard:not(:disabled):hover svg.orn{animation:sway 1.4s ease-in-out infinite}
+@keyframes sway{0%,100%{rotate:-5deg}50%{rotate:5deg}}
 .mcard .no{font-family:var(--f-head);font-weight:700;font-size:12px;letter-spacing:.14em;color:var(--gold-hi)}
 .mcard:not(:disabled):hover{transform:translateY(-4px) rotate(var(--tilt,0deg));box-shadow:inset 0 0 0 4px rgba(21,9,35,.55),inset 0 0 0 5px var(--line-hi),0 10px 24px rgba(0,0,0,.45)}
 .mcard.taken{cursor:default;filter:saturate(.25) brightness(.7)}
@@ -118,6 +122,23 @@ h3{font-family:var(--f-head);font-weight:700;font-size:15px;margin:0 0 8px;color
 .mcard.mine{filter:none;box-shadow:inset 0 0 0 4px rgba(21,9,35,.55),0 0 0 2px var(--gold-hi),0 0 22px rgba(244,221,155,.35)}
 .mcard.mine .who{background:var(--gold);color:#1b0c2c;border-color:var(--gold-hi)}
 .mcard.taken .no,.mcard.mine .no{margin-bottom:22px}
+.join{max-width:460px;margin:0 auto;text-align:center}
+.join .sub{margin-inline:auto}
+.join form{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.join .btn.big{margin-top:6px;width:100%}
+.join .count{margin:14px 0 0}
+.joingift{width:150px;margin:4px auto 16px;cursor:default}
+.joingift .q{font-family:var(--f-display);font-weight:900;font-size:22px;color:var(--gold-hi)}
+.joingift.flip{animation:flip .9s ease both}
+@keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.05)}100%{transform:rotateY(0)}}
+.patbar{display:flex;align-items:center;gap:14px;border:1px solid var(--line-hi);border-radius:14px;padding:10px 14px;margin-bottom:14px;background:linear-gradient(90deg,rgba(15,59,44,.6),rgba(52,23,85,.6))}
+.patbar .k{font-family:var(--f-head);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.patbar .v{font-family:var(--f-head);font-weight:700;font-size:20px;line-height:1.2}
+.patbar .h{color:var(--muted);font-size:13px}
+.stage .patbar{max-width:440px;margin:6px auto 4px;text-align:left}
+.cell.target:not(.marked){box-shadow:inset 0 0 0 2px rgba(244,221,155,.55)}
+.rank{font-family:var(--f-head);font-weight:700;font-size:12px;background:var(--gold);color:#1b0c2c;border-radius:6px;padding:2px 7px}
+.patlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:16px;margin-top:10px}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:14px}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--line)}
 
@@ -287,50 +308,47 @@ footer small{display:block;font-family:var(--f-head);font-size:11px;letter-spaci
   <header class="mast">
     <div class="eyerow"><svg class="holly" aria-hidden="true"><use href="#holly"/></svg><div class="eyebrow">2026 LSH VA Awards Night · Christmas Party</div><svg class="holly" aria-hidden="true" style="transform:scaleX(-1)"><use href="#holly"/></svg></div>
     <h1>VA Life Bingo</h1>
-    <div class="script"><small>Merry &amp; masked · Get five in a row · Shout Bingo</small></div>
+    <div class="script"><small>Merry &amp; bright · Register · Match the pattern · Shout Bingo</small></div>
     <nav id="nav" aria-label="Views"></nav>
     <div class="notice" id="notice"></div>
     <div id="banner"></div>
   </header>
 
   <main>
-    <section id="v-wall" hidden></section>
+    <section id="v-join" hidden>
+      <div class="panel join">
+        <div class="mcard gift joingift" id="joinGift" aria-hidden="true"></div>
+        <h2>Get your bingo card</h2>
+        <p class="sub">Type your name and unwrap your own one-of-a-kind card. No two guests get the same card.</p>
+        <form id="joinForm" autocomplete="off">
+          <label for="joinName">Your name</label>
+          <input type="text" id="joinName" maxlength="40" required placeholder="First name and last initial" enterkeyhint="go">
+          <p class="err" id="joinErr" role="alert"></p>
+          <button type="submit" class="btn primary big" id="joinGo">Unwrap my card</button>
+        </form>
+        <p class="count" id="joinCount"></p>
+      </div>
+    </section>
     <section id="v-card" hidden></section>
     <section id="v-host" hidden></section>
     <section id="v-rules" hidden>
       <div class="panel">
         <h2>How to play</h2>
-        <p class="sub">Every wrapped gift on the wall hides a different mix of VA moments behind its mask. Unwrap one under your name, turn your Bells on if you like, and play along as the host draws ornaments.</p>
+        <p class="sub">Register your name to unwrap your own card, then play along as the host draws ornaments. Each round is quick and uses a different winning pattern.</p>
         <ol class="steps">
-          <li><b>Unwrap a gift.</b> Pick any wrapped card on the Gift Wall. Once it is yours, nobody else can take it.</li>
+          <li><b>Register.</b> Type your name and tap Unwrap my card. You get a one-of-a-kind card.</li>
           <li><b>Watch the ornament draw.</b> The host draws a VA experience, such as “Handled client calls”.</li>
           <li><b>Mark your square.</b> Tap the matching square on your card. Only called squares can be marked.</li>
-          <li><b>Shout Bingo.</b> Five in a row (across, down, or diagonal) lights up the BINGO button. Tap it and the host checks your card.</li>
+          <li><b>Shout Bingo.</b> Complete this round’s pattern (shown above your card) and the BINGO button lights up. Tap it and the host checks your card.</li>
         </ol>
-        <h3 style="margin-top:20px">Winning patterns</h3>
-        <div class="patterns" id="patterns"></div>
+        <h3 style="margin-top:20px">Winning patterns</h3><p class="sub">The host uses a different pattern each round. Each one needs only a few squares, so rounds take minutes.</p>
+        <div class="patlist" id="patterns"></div>
       </div>
     </section>
   </main>
-  <footer>Merry Christmas and a bright New Year from the LSH family<small>Mask your experiences, get five in a row, and shout Bingo!</small></footer>
+  <footer>Merry Christmas and a bright New Year from the LSH family<small>Share your experiences, match the pattern, and shout Bingo!</small></footer>
 </div>
 
-<div class="overlay" id="claimDlg" hidden role="dialog" aria-modal="true" aria-labelledby="claimTitle">
-  <div class="dialog">
-    <div id="claimCard"></div>
-    <h2 id="claimTitle">Unwrap this card?</h2>
-    <p class="sub" id="claimSub" style="margin-inline:auto"></p>
-    <form id="claimForm" autocomplete="off">
-      <label for="claimName">Your name on the card</label>
-      <input type="text" id="claimName" maxlength="40" required placeholder="First name and last initial">
-      <p class="err" id="claimErr" role="alert"></p>
-      <div class="row" style="justify-content:center;margin-top:6px">
-        <button type="button" class="btn ghost" id="claimCancel">Keep looking</button>
-        <button type="submit" class="btn primary" id="claimGo">Unwrap it</button>
-      </div>
-    </form>
-  </div>
-</div>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script>
@@ -375,31 +393,116 @@ const LINES = (() => { const L = [];
   for (let c = 0; c < 5; c++) L.push([0,1,2,3,4].map(r => r*5+c));
   L.push([0,6,12,18,24],[4,8,12,16,20]); return L; })();
 const MASK_COLORS = [["#e3c06a","#f7e3a6"],["#c8374a","#f0a0ab"],["#2f8f5b","#9be0b8"],["#3e63c9","#a9bdf5"],["#c9c9d6","#ffffff"],["#b04fa0","#eab0de"],["#1f1f2b","#d9b45a"]];
-const DECK_SIZES = [60,80,100,120,150,200];
-const DEFAULT_DECK = 120;
+const DECK_SIZES = [100,120,150];
+const DEFAULT_DECK = 120, MIN_CARDS = 100, MAX_CARDS = 150;
 
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const cardCache = {};
+/* Cards are built in number order on every device, so they always match.
+   A card whose set of 24 squares already appeared on a lower-numbered card is redrawn,
+   so no two cards share the same squares (there are 118,755 possible sets). */
+const cardCache = {}, cardSets = new Set();
+let cardsBuilt = 0;
 function cardFor(no){
-  if (cardCache[no]) return cardCache[no];
-  const r = rng(no*7919+2026), a = ITEMS.map((_,i)=>i);
-  for (let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
-  const c = a.slice(0,24); c.splice(FREE,0,-1); return (cardCache[no]=c);
+  while (cardsBuilt < no) {
+    const n = ++cardsBuilt;
+    for (let attempt = 0; ; attempt++) {
+      const r = rng(n*7919 + 2026 + attempt*100003), a = ITEMS.map((_,i)=>i);
+      for (let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+      const key = a.slice(24).sort((x,y)=>x-y).join(",");   /* the 5 VA moments left off identify the set */
+      if (cardSets.has(key)) continue;
+      cardSets.add(key);
+      const c = a.slice(0,24); c.splice(FREE,0,-1); cardCache[n] = c; break;
+    }
+  }
+  return cardCache[no];
 }
 const WRAPS = [["#9e1f33","#d2475c","#f4dd9b","#b58b33"],["#145a3c","#2b8a5e","#e2546a","#9e1f33"],["#3a1766","#6a35a8","#f4dd9b","#b58b33"],["#0f2f5c","#2f5fa6","#f6f2ff","#a9b4cc"],["#7a1a2a","#b8344a","#7fd3a6","#2f8f5b"]];
 function maskLook(no){const r=rng(no*31+7);return{col:MASK_COLORS[Math.floor(r()*MASK_COLORS.length)],feather:r()>.4,tilt:(r()*8-4).toFixed(1),wrap:WRAPS[Math.floor(r()*WRAPS.length)]}}
 function wrapVars(no){const w=maskLook(no).wrap;return `--wrap:${w[0]};--wrap-hi:${w[1]};--ribbon:${w[2]};--ribbon-lo:${w[3]}`}
 const bowSvg = no => `<svg class="bow" viewBox="0 0 60 30" aria-hidden="true" style="fill:${maskLook(no).wrap[2]}"><use href="#bow"/></svg>`;
-function maskSvg(no){const m=maskLook(no);
-  return `<svg viewBox="0 0 120 80" aria-hidden="true"><defs><linearGradient id="g${no}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${m.col[1]}"/><stop offset="1" stop-color="${m.col[0]}"/></linearGradient></defs>
-  ${m.feather?`<use href="#feather" fill="${m.col[1]}"/>`:""}<use href="#mask" fill="url(#g${no})" stroke="#d9b45a" stroke-width="1.2"/></svg>`;}
+/* Ornaments: every card gets its own shape, colour and pattern, seeded by card number */
+const ORN_COLORS = [["#ffb3bd","#d4364c","#6e1220"],["#a8f0c8","#2f8f5b","#0b3a22"],["#fff0b8","#d9b45a","#7a5a18"],["#c9d8ff","#3e63c9","#122a6b"],
+  ["#ecc6ff","#8a3fc0","#3a1062"],["#ffd0ec","#d05aa0","#6a1846"],["#b8f3ef","#2a9d9a","#0d4544"],["#f3f3f8","#a9adc4","#4a4e66"]];
+const ORN_SHAPES = {
+  round:  `<circle cx="50" cy="64" r="36"/>`,
+  egg:    `<ellipse cx="50" cy="66" rx="29" ry="40"/>`,
+  drop:   `<path d="M50 26C80 46 84 80 50 106C16 80 20 46 50 26Z"/>`,
+  finial: `<path d="M50 26C72 34 88 52 72 70C63 80 55 88 50 108C45 88 37 80 28 70C12 52 28 34 50 26Z"/>`,
+  star:   `<path d="M50 24L60 50L88 52L66 70L74 98L50 82L26 98L34 70L12 52L40 50Z" stroke-linejoin="round"/>`,
+  bell:   `<path d="M50 26C67 26 73 42 73 58C73 74 80 82 87 89L13 89C20 82 27 74 27 58C27 42 33 26 50 26Z"/>`
+};
+const SHAPE_KEYS = Object.keys(ORN_SHAPES);
+/* Ornament designs are also unique per card (6 shapes x 8 colours x 6 patterns = 288 designs) */
+const ornCache = {}, ornSeen = new Set(); let ornsBuilt = 0;
+function ornLook(no){
+  while (ornsBuilt < no) {
+    const n = ++ornsBuilt;
+    for (let attempt = 0; ; attempt++) {
+      const r = rng(n*131 + 17 + attempt*7907);
+      const o = { shape: SHAPE_KEYS[Math.floor(r()*SHAPE_KEYS.length)], ci: Math.floor(r()*ORN_COLORS.length),
+        pat: ["stripes","dots","zigzag","band","swirl","plain"][Math.floor(r()*6)], trim: r()<.6 ? "#f4dd9b" : "#ffffff", tilt: (r()*12-6).toFixed(1) };
+      const key = o.shape+"|"+o.ci+"|"+o.pat;
+      if (ornSeen.has(key) && ornSeen.size < 288) {
+        if (attempt < 60) continue;
+        /* random tries ran out: take the first design not used yet */
+        outer: for (const sh of SHAPE_KEYS) for (let ci=0; ci<ORN_COLORS.length; ci++) for (const pt of ["stripes","dots","zigzag","band","swirl","plain"]) {
+          const k = sh+"|"+ci+"|"+pt; if (!ornSeen.has(k)) { o.shape=sh; o.ci=ci; o.pat=pt; break outer; } }
+      }
+      const fk = o.shape+"|"+o.ci+"|"+o.pat;
+      ornSeen.add(fk); o.col = ORN_COLORS[o.ci]; ornCache[n] = o; break;
+    }
+  }
+  return ornCache[no];
+}
+function ornPattern(pat, trim){
+  if (pat==="stripes") return `<g fill="${trim}" opacity=".85"><rect x="0" y="48" width="100" height="5"/><rect x="0" y="62" width="100" height="9"/><rect x="0" y="80" width="100" height="5"/></g>`;
+  if (pat==="dots") { let d=""; for (let y=36;y<108;y+=13) for (let x=(y/13%2?16:22);x<92;x+=13) d+=`<circle cx="${x}" cy="${y}" r="2.6"/>`; return `<g fill="${trim}" opacity=".9">${d}</g>`; }
+  if (pat==="zigzag") return `<path d="M0 66l8-9 8 9 8-9 8 9 8-9 8 9 8-9 8 9 8-9 8 9 8-9 8 9" fill="none" stroke="${trim}" stroke-width="4" stroke-linejoin="round"/><path d="M0 80l8-6 8 6 8-6 8 6 8-6 8 6 8-6 8 6 8-6 8 6 8-6 8 6" fill="none" stroke="${trim}" stroke-width="2" opacity=".7"/>`;
+  if (pat==="band") return `<rect x="0" y="58" width="100" height="14" fill="${trim}" opacity=".9"/><g fill="#c8374a"><circle cx="30" cy="65" r="3"/><circle cx="50" cy="65" r="3"/><circle cx="70" cy="65" r="3"/></g>`;
+  if (pat==="swirl") return `<path d="M14 50C34 38 46 62 66 50S90 46 96 54M8 74C28 62 40 86 60 74S84 70 92 78" fill="none" stroke="${trim}" stroke-width="3.5" stroke-linecap="round" opacity=".9"/>`;
+  return "";
+}
+function maskSvg(no, idp){ const o = ornLook(no), id = (idp||"w")+no, shape = ORN_SHAPES[o.shape];
+  return `<svg class="orn" viewBox="0 0 100 112" aria-hidden="true" style="transform:rotate(${o.tilt}deg)"><defs>
+    <radialGradient id="og${id}" cx="35%" cy="38%" r="75%"><stop offset="0" stop-color="${o.col[0]}"/><stop offset=".5" stop-color="${o.col[1]}"/><stop offset="1" stop-color="${o.col[2]}"/></radialGradient>
+    <clipPath id="oc${id}">${shape}</clipPath></defs>
+    <path d="M50 2a6 6 0 1 1-0.1 0" fill="none" stroke="#d9b45a" stroke-width="2.4"/>
+    <rect x="40" y="13" width="20" height="13" rx="2.5" fill="#d9b45a" stroke="#8a6a24"/><path d="M43 15v9M48 15v9M53 15v9M57 15v9" stroke="#8a6a24" stroke-width="1"/>
+    <g fill="url(#og${id})" stroke="${o.trim}" stroke-width="1.6">${shape}</g>
+    <g clip-path="url(#oc${id})">${ornPattern(o.pat, o.trim)}<ellipse cx="36" cy="46" rx="9" ry="14" fill="#fff" opacity=".35" transform="rotate(-28 36 46)"/></g>
+    ${o.shape==="bell"?`<circle cx="50" cy="96" r="6" fill="${o.trim}"/>`:""}</svg>`;
+}
 const pad = n => String(n).padStart(2,"0");
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function linesOf(set){return LINES.filter(l=>l.every(p=>set.has(p)))}
+/* Winning patterns: each round uses one. All need only 4 called squares (the FREE centre counts). */
+const BLOCKS = []; for (let r=0;r<4;r++) for (let c=0;c<4;c++) BLOCKS.push([r*5+c, r*5+c+1, r*5+c+5, r*5+c+6]);
+const PATTERNS = {
+  line:    {name:"Any line",       hint:"Any full row, column or diagonal", sets:LINES},
+  corners: {name:"Four corners",   hint:"All four corner squares",           sets:[[0,4,20,24]]},
+  stamp:   {name:"Postage stamp",  hint:"A 2×2 square in any corner",        sets:[[0,1,5,6],[3,4,8,9],[15,16,20,21],[18,19,23,24]]},
+  plus:    {name:"Little plus",    hint:"The four squares around FREE",      sets:[[7,11,12,13,17]]},
+  smallx:  {name:"Little X",       hint:"The four diagonal neighbours of FREE", sets:[[6,8,12,16,18]]},
+  block:   {name:"Any 2×2 block",  hint:"Any four squares forming a square", sets:BLOCKS},
+  diag:    {name:"Any diagonal",   hint:"Either corner-to-corner diagonal",  sets:[[0,6,12,18,24],[4,8,12,16,20]]},
+  cross:   {name:"Middle cross",   hint:"The middle row or the middle column", sets:[[10,11,12,13,14],[2,7,12,17,22]]}
+};
+const PATTERN_KEYS = Object.keys(PATTERNS);
+const pat = () => PATTERNS[S.game.pattern] || PATTERNS.line;
+function winsOf(set){ return pat().sets.filter(l=>l.every(p=>set.has(p))); }
+function patMini(sets, size){ const on = new Set(sets[0]); size = size||12;
+  return `<div class="g" style="grid-template-columns:repeat(5,${size}px)" aria-hidden="true">${Array.from({length:25},(_,i)=>`<i class="${on.has(i)?"on":""}" style="width:${size}px;height:${size}px"></i>`).join("")}</div>`; }
+function patBar(label){ const p = pat();
+  return `<div class="patbar"><div class="pat">${patMini(p.sets, 11)}</div><div><div class="k">${label}</div><div class="v">${esc(p.name)}</div><div class="h">${esc(p.hint)}</div></div></div>`; }
+/* next round: a pattern not used yet this event; once all are used, start over (never the same twice in a row) */
+function nextPattern(g){ const cur = g.pattern||"line", used = new Set(g.used||[cur]);
+  let pool = PATTERN_KEYS.filter(k=>!used.has(k)), fresh = false;
+  if (!pool.length){ pool = PATTERN_KEYS.filter(k=>k!==cur); fresh = true; }
+  const k = pool[Math.floor(Math.random()*pool.length)];
+  return {pattern:k, used: fresh ? [k] : [...used, k]}; }
 
 /* ---------- State ---------- */
 const S = { mode:"loading", uid:null, host:false, myName:"",
-  game:{round:1,called:[],winners:[],deck:DEFAULT_DECK}, cards:{}, players:{}, me:null, cardsLoaded:false };
+  game:{round:1,called:[],winners:[],deck:DEFAULT_DECK,pattern:"line",used:["line"]}, cards:{}, players:{}, me:null, cardsLoaded:false };
 let B = null, seenWinners = -1, lastCalled = -1, heardCalls = -1;
 let bellsOn = false; try { bellsOn = localStorage.getItem("bells")==="1"; } catch(e){}
 let actx = null;
@@ -421,14 +524,16 @@ function validMarks(me, card){
 }
 
 /* ---------- Views ---------- */
-const VIEWS = ["wall","card","host","rules"];
+const VIEWS = ["join","card","host","rules"];
 function currentView(){
-  const h = location.hash.slice(1);
+  let h = location.hash.slice(1); if (h==="wall") h = "join";
+  if (h==="join" && myCard()) return "card";
+  if (h==="card" && !myCard()) return "join";
   if (VIEWS.includes(h) && (h!=="host"||S.host)) return h;
-  return myCard() ? "card" : "wall";
+  return myCard() ? "card" : "join";
 }
 function renderNav(v){
-  const tabs = [["wall","Gift Wall"],["card","My Card"]];
+  const tabs = [myCard() ? ["card","My Card"] : ["join","Get My Card"]];
   if (S.host) tabs.push(["host","Host Stage"]);
   tabs.push(["rules","How to Play"]);
   document.getElementById("nav").innerHTML = tabs.map(([k,l])=>`<a href="#${k}"${k===v?' aria-current="page"':""}>${l}</a>`).join("")
@@ -442,7 +547,7 @@ function renderNow(){
   renderNav(v);
   VIEWS.forEach(k => document.getElementById("v-"+k).hidden = k!==v);
   renderBanner();
-  if (v==="wall") renderWall();
+  if (v==="join") renderJoin();
   if (v==="card") renderCard();
   if (v==="host") renderHost();
   document.body.classList.toggle("focus", v==="card");
@@ -458,38 +563,24 @@ function renderBanner(){
   const last = w[w.length-1];
   el.innerHTML = last ? `<div class="banner"><div class="k">Merry Christmas · ${last.kind==="raffle"?"Raffle winner":"Round "+last.round+" Bingo winner"}</div><div class="v">${esc(last.name)} · Card No. ${pad(last.card)}</div></div>` : "";
 }
-function deckCount(){const nums=Object.keys(S.cards).map(Number);
-  /* never run out: keep at least 12 wrapped cards on the wall, whatever the setting */
-  const roomy=Math.ceil((nums.length+12)/10)*10;
-  return Math.max(S.game.deck||DEFAULT_DECK,roomy,...nums,0)}
+/* How many card numbers are in play: the host's limit (100-150), raised automatically
+   so a dozen are always free, but never above 150 */
+function cardCap(){ const taken = Object.keys(S.cards).length;
+  const roomy = Math.ceil((taken+12)/10)*10;
+  return Math.min(MAX_CARDS, Math.max(MIN_CARDS, S.game.deck||DEFAULT_DECK, roomy)); }
 /* my card only counts if the wall agrees it is still mine (host may have released it) */
 function myCard(){ if(!S.me||!S.me.card) return null; if(S.mode==="live"&&S.cardsLoaded){const c=S.cards[S.me.card]; if(!c||c.owner!==S.uid) return null;} return S.me.card; }
 
-function renderWall(){
-  const n = deckCount(), taken = Object.keys(S.cards).length, mine = S.me && S.me.card;
-  let html = `<div class="panel"><div class="wallhead"><div><h2>The Gift Wall</h2>
-    <p class="sub" style="margin:0">Every wrapped mask hides a different bingo card. Pick a gift and unwrap it under your name. Each card belongs to one guest only.</p></div>
-    <div class="row"><span class="count"><b>${n-taken}</b> of ${n} still wrapped</span>
-    <button class="btn primary" id="luckyBtn"${n-taken?"":" disabled"}>Surprise me</button></div></div>
-    <div class="wall">`;
-  for (let i=1;i<=n;i++){
-    const c = S.cards[i], isMine = c && c.owner===S.uid, look = maskLook(i);
-    const cls = isMine ? "mine" : c ? "taken" : "";
-    const lbl = isMine ? `Card ${i}, your card` : c ? `Card ${i}, taken by ${c.name}` : `Card ${i}, masked`;
-    html += `<button class="mcard gift ${cls}" data-no="${i}" style="--tilt:${look.tilt}deg;${wrapVars(i)}" aria-label="${esc(lbl)}"${c&&!isMine?" disabled":""}>
-      ${bowSvg(i)}${maskSvg(i)}<span class="no">No. ${pad(i)}</span>${c?`<span class="who">${isMine?"Yours · ":""}${esc(c.name)}</span>`:""}</button>`;
-  }
-  html += `</div><div class="legend"><span><i style="background:linear-gradient(90deg,#9e1f33 40%,#f4dd9b 40% 60%,#9e1f33 60%)"></i>Wrapped: open to claim</span><span><i style="background:#4a3f55"></i>Claimed by a guest</span><span><i style="background:var(--gold)"></i>Your card</span></div></div>`;
-  const el = document.getElementById("v-wall"); el.innerHTML = html;
-  el.querySelectorAll(".mcard").forEach(b => b.onclick = () => {
-    const no = +b.dataset.no; if (S.me && S.me.card===no){location.hash="card";return;} openClaim(no);
-  });
-  const lb = document.getElementById("luckyBtn");
-  if (lb) lb.onclick = () => { const open=[]; for(let i=1;i<=n;i++) if(!S.cards[i]) open.push(i); if(open.length) openClaim(open[Math.floor(Math.random()*open.length)]); };
+function renderJoin(){
+  const cap = cardCap(), taken = Object.keys(S.cards).length, left = Math.max(0, cap - taken);
+  document.getElementById("joinCount").innerHTML = `<b>${taken}</b> guests registered · ${left} cards left`;
+  const nm = document.getElementById("joinName");
+  if (!nm.value && S.myName && document.activeElement!==nm) nm.value = S.myName;
+  document.getElementById("joinGo").disabled = joining || (taken >= MAX_CARDS);
+  if (taken >= MAX_CARDS) document.getElementById("joinErr").textContent = `All ${MAX_CARDS} cards are taken. Ask the host to free one up.`;
 }
-
 function ball(item, n, cls){
-  if (item===undefined) return `<div class="ball empty ${cls||""}"><i data-lucide="venetian-mask"></i></div>`;
+  if (item===undefined) return `<div class="ball empty ${cls||""}"><i data-lucide="gift"></i></div>`;
   return `<div class="ball o${item%5} ${cls||""}" title="${esc(ITEMS[item][0])}"><i data-lucide="${ICONS[item]}"></i>${n?`<b>${pad(n)}</b>`:""}</div>`;
 }
 function callingStrip(){
@@ -502,7 +593,7 @@ function callingStrip(){
     ${recent.length?`<div class="recent"><span>Previous</span>${recent.map((x,i)=>ball(x,c.length-1-i,"sm")).join("")}</div>`:""}</div></div>`;
 }
 function cellHtml(item,i,cls){
-  if (item<0) return `<div class="cell free ${cls}"><svg viewBox="0 0 44 30" aria-hidden="true" style="width:46%"><use href="#holly"/></svg><svg viewBox="0 0 120 80" aria-hidden="true"><use href="#mask" fill="#1b0c2c"/></svg><span class="t">Free</span></div>`;
+  if (item<0) return `<div class="cell free ${cls}"><svg viewBox="0 0 44 30" aria-hidden="true" style="width:46%"><use href="#holly"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" style="width:34%"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6Z" fill="#1b0c2c"/></svg><span class="t">Free</span></div>`;
   const [t,d] = ITEMS[item];
   return `<button type="button" class="cell ${cls}" data-p="${i}" aria-pressed="${cls.includes("marked")}"><i data-lucide="${ICONS[item]}" class="ic"></i><span class="t">${esc(t)}</span>${d?`<span class="d">${esc(d)}</span>`:""}</button>`;
 }
@@ -510,27 +601,29 @@ function renderCard(){
   const el = document.getElementById("v-card"), me = S.me;
   if (!myCard()){
     el.innerHTML = `<div class="panel" style="text-align:center"><h2>You have not picked a card yet</h2>
-      <p class="sub" style="margin-inline:auto">Head to the Gift Wall, pick any wrapped card, and unwrap it under your name.</p>
-      <a class="btn primary big" href="#wall" style="text-decoration:none;display:inline-block">Go to the Gift Wall</a></div>`;
+      <p class="sub" style="margin-inline:auto">Register your name to unwrap your own card.</p>
+      <a class="btn primary big" href="#join" style="text-decoration:none;display:inline-block">Get my card</a></div>`;
     return;
   }
   const card = cardFor(me.card), called = new Set(S.game.called), valid = validMarks(me, card);
-  const wins = new Set(linesOf(valid).flat());
+  const wins = new Set(winsOf(valid).flat());
+  const target = new Set(pat().sets.flat());
   const hasLine = wins.size>0;
   const b = me.bingo && me.bingo.round===S.game.round ? me.bingo : null;
   let status = "Mark called squares as the host reads them.";
-  if (hasLine) status = "You have five in a row. Tap BINGO so the host can check your card.";
+  if (hasLine) status = `You have ${pat().name}! Tap BINGO so the host can check your card.`;
   if (b && !b.status) status = "Bingo sent. The host is checking your card now.";
   if (b && b.status==="confirmed") status = "Confirmed winner! Congratulations.";
-  if (b && b.status==="dismissed") status = "The host checked your card and the line did not hold. Keep playing.";
+  if (b && b.status==="dismissed") status = "The host checked your card and the pattern did not hold. Keep playing.";
   const canBingo = hasLine && (!b || b.status==="dismissed");
   const canSwap = S.game.called.length===0;
   let grid = ["B","I","N","G","O"].map(l=>`<div class="hd">${l}</div>`).join("");
   card.forEach((item,i)=>{
-    const cls = [called.has(item)?"called":"", valid.has(i)&&item>=0?"marked":"", wins.has(i)?"win":""].join(" ");
+    const cls = [called.has(item)?"called":"", valid.has(i)&&item>=0?"marked":"", wins.has(i)?"win":"", target.size<25&&target.has(i)?"target":""].join(" ");
     grid += cellHtml(item,i,cls);
   });
   el.innerHTML = `<div class="cardwrap">${callingStrip()}
+    ${patBar("Round "+S.game.round+" winning pattern")}
     <div class="ribbon"><span class="name">${esc(me.name)}</span><span class="no">Card No. ${pad(me.card)}</span></div>
     <div class="bingo" id="bingoGrid">${grid}</div>
     <div class="bingobar"><button class="bingo-btn" id="bingoBtn"${canBingo?"":" disabled"}>BINGO!</button><div class="status">${status}</div></div>
@@ -538,17 +631,17 @@ function renderCard(){
     <div class="row" style="justify-content:center;margin-top:18px">${canSwap?`<button class="btn ghost" id="releaseBtn">Give back this card</button>`:`<span class="empty">Cards lock once the host starts calling.</span>`}</div></div>`;
   el.querySelectorAll("button.cell").forEach(c => c.onclick = () => toggleMark(+c.dataset.p, c));
   document.getElementById("bingoBtn").onclick = callBingo;
-  const rb = document.getElementById("releaseBtn"); if (rb) armButton(rb, "Tap again to release", async () => { await B.release(me.card, S.uid); toast("Card wrapped back up and returned to the wall."); location.hash="wall"; });
+  const rb = document.getElementById("releaseBtn"); if (rb) armButton(rb, "Tap again to release", async () => { await B.release(me.card, S.uid); toast("Your card was returned. Register again any time."); location.hash="join"; });
 }
 
 function miniCard(p){
-  const card = cardFor(p.card), called = new Set(S.game.called), valid = validMarks(p, card), wins = new Set(linesOf(valid).flat());
+  const card = cardFor(p.card), called = new Set(S.game.called), valid = validMarks(p, card), wins = new Set(winsOf(valid).flat());
   return `<div class="mini">${card.map((it,i)=>`<span class="${it<0?"f":""} ${called.has(it)?"c":""} ${valid.has(i)&&it>=0?"m":""} ${wins.has(i)?"w":""}" title="${it<0?"Free":esc(ITEMS[it][0])}">${it<0?"FREE":esc(ITEMS[it][0])}</span>`).join("")}</div>`;
 }
 let raffleSpin = null, drawLock = 0;
 function renderHost(){
   const g = S.game, last = g.called[g.called.length-1], el = document.getElementById("v-host");
-  const claims = Object.entries(S.players).filter(([,p])=>p.bingo && p.bingo.round===g.round && !p.bingo.status);
+  const claims = Object.entries(S.players).filter(([,p])=>p.bingo && p.bingo.round===g.round && !p.bingo.status).sort((a,b)=>(a[1].bingo.at||0)-(b[1].bingo.at||0));
   const guests = Object.entries(S.cards).sort((a,b)=>a[0]-b[0]);
   const remaining = ITEMS.length - g.called.length;
   el.innerHTML = `<div class="panel stage">
@@ -556,17 +649,19 @@ function renderHost(){
       ${ball(last, g.called.length, "xl "+(lastCalled!==g.called.length?"reveal":""))}
       <div class="callt ${lastCalled!==g.called.length?"reveal":""}">${last===undefined?"Press Call next to begin":esc(ITEMS[last][0])}</div>
       <div class="det">${last!==undefined&&ITEMS[last][1]?esc(ITEMS[last][1]):""}</div>
-      <div class="meta">${g.called.length} of ${ITEMS.length} called · ${guests.length} guests holding cards</div>
+      ${patBar("Round "+g.round+" winning pattern")}
+      ${g.called.length?"":`<div class="row" style="justify-content:center;margin-top:6px"><label for="patSel" style="margin:0">Pattern for this round</label><select id="patSel">${PATTERN_KEYS.map(k=>`<option value="${k}"${k===(g.pattern||"line")?" selected":""}>${esc(PATTERNS[k].name)}</option>`).join("")}</select></div>`}
+      <div class="meta">${g.called.length} of ${ITEMS.length} called · ${guests.length} guests registered</div>
       <div class="row"><button class="btn primary big" id="hNext"${remaining?"":" disabled"}>Call next</button>
         <button class="btn" id="hUndo"${g.called.length?"":" disabled"}>Undo last</button>
         <button class="btn" id="hRound">New round</button></div>
     </div>
     <div class="grid2">
-      <div class="panel"><h3>Bingo claims</h3>${claims.length?`<ul class="list">${claims.map(([id,p])=>{
-          const ok = linesOf(validMarks(p,cardFor(p.card))).length>0;
-          return `<li class="claim"><div class="claimtop"><span class="nm">${esc(p.name)}</span><span class="tag">Card ${pad(p.card)}</span><span class="verdict ${ok?"ok":"bad"}">${ok?"Valid line":"No valid line"}</span></div>
+      <div class="panel"><h3>Bingo claims</h3>${claims.length?`<ul class="list">${claims.map(([id,p],ci)=>{
+          const ok = winsOf(validMarks(p,cardFor(p.card))).length>0;
+          return `<li class="claim"><div class="claimtop"><span class="rank">#${ci+1}</span><span class="nm">${esc(p.name)}</span><span class="tag">Card ${pad(p.card)}</span><span class="verdict ${ok?"ok":"bad"}">${ok?"Valid "+esc(pat().name):"Pattern not complete"}</span></div>
             ${miniCard(p)}<div class="row"><button class="btn primary" data-confirm="${esc(id)}">Confirm winner</button><button class="btn ghost" data-dismiss="${esc(id)}">Not yet</button></div></li>`;}).join("")}</ul>`
-        :`<p class="empty">No one has called Bingo this round. Claims appear here with their card checked against your calls.</p>`}</div>
+        :`<p class="empty">No one has called Bingo this round. Claims appear here in the order they arrive, checked against your calls and the round’s pattern.</p>`}</div>
       <div class="panel"><h3>Raffle draw</h3><p class="sub">Draws one guest at random from everyone holding a card, skipping guests who already won a raffle prize.</p>
         <div class="raffle-name" id="raffleName">&nbsp;</div>
         <div class="row" style="justify-content:center"><button class="btn primary" id="hRaffle"${guests.length?"":" disabled"}>Draw a raffle winner</button></div></div>
@@ -574,17 +669,18 @@ function renderHost(){
       <div class="panel"><h3>Call board</h3><div class="chips">${ITEMS.map((it,i)=>{const k=g.called.indexOf(i);return `<span class="chip ${k>=0?"on":""}">${k>=0?`<span class="i">${k+1}</span>`:""}<i data-lucide="${ICONS[i]}" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>${esc(it[0])}</span>`}).join("")}</div></div>
       <div class="panel"><h3>Guests and cards</h3>${guests.length?`<ul class="list">${guests.map(([no,c])=>`<li><span class="tag">No. ${pad(no)}</span><span class="nm">${esc(c.name)}</span><button class="btn ghost x" data-release="${no}" data-owner="${esc(c.owner)}">Release</button></li>`).join("")}</ul>`:`<p class="empty">No cards claimed yet. Share this page so guests can pick from the wall.</p>`}</div>
       <div class="panel"><h3>Event settings</h3>
-        <div class="row"><label for="deckSel" style="margin:0">Cards on the wall</label><select id="deckSel">${DECK_SIZES.map(s=>`<option value="${s}"${s===(g.deck||DEFAULT_DECK)?" selected":""}>${s}</option>`).join("")}</select></div>
+        <div class="row"><label for="deckSel" style="margin:0">Card limit</label><select id="deckSel">${DECK_SIZES.map(s=>`<option value="${s}"${s===(g.deck||DEFAULT_DECK)?" selected":""}>${s}</option>`).join("")}</select></div>
         <div class="row" style="margin-top:14px"><button class="btn danger" id="hReset">Reset calls and winners</button><button class="btn danger" id="hClear">Clear every card</button></div>
-        <p class="sub" style="margin-top:10px;font-size:13px">Resetting keeps everyone's cards. Clearing returns every card to the wall.</p></div>
+        <p class="sub" style="margin-top:10px;font-size:13px">Resetting keeps everyone's cards. Clearing removes every registration so guests sign up again.</p></div>
     </div>`;
   if (raffleSpin) document.getElementById("raffleName").textContent = raffleSpin;
   document.getElementById("hNext").onclick = () => { if (Date.now() < drawLock) return; drawLock = Date.now() + 900; const left=ITEMS.map((_,i)=>i).filter(i=>!g.called.includes(i)); if(!left.length) return;
     saveGame({...g, called:[...g.called, left[Math.floor(Math.random()*left.length)]]}); };
   document.getElementById("hUndo").onclick = () => saveGame({...g, called:g.called.slice(0,-1)});
-  armButton(document.getElementById("hRound"), `Tap again to start round ${g.round+1}`, () => saveGame({...g, round:g.round+1, called:[]}));
-  armButton(document.getElementById("hReset"), "Tap again to reset", () => saveGame({...g, round:1, called:[], winners:[]}));
-  armButton(document.getElementById("hClear"), "Tap again to clear all", async () => { for (const [no,c] of Object.entries(S.cards)) await B.release(+no, c.owner); toast("Every card is back on the wall."); });
+  armButton(document.getElementById("hRound"), `Tap again to start round ${g.round+1}`, () => saveGame({...g, round:g.round+1, called:[], ...nextPattern(g)}));
+  const ps = document.getElementById("patSel"); if (ps) ps.onchange = e => saveGame({...S.game, pattern:e.target.value, used:[...new Set([...(S.game.used||[]).filter(k=>k!==S.game.pattern), e.target.value])]});
+  armButton(document.getElementById("hReset"), "Tap again to reset", () => saveGame({...g, round:1, called:[], winners:[], pattern:"line", used:["line"]}));
+  armButton(document.getElementById("hClear"), "Tap again to clear all", async () => { for (const [no,c] of Object.entries(S.cards)) await B.release(+no, c.owner); toast("Every registration has been cleared."); });
   document.getElementById("deckSel").onchange = e => saveGame({...S.game, deck:+e.target.value});
   document.getElementById("hRaffle").onclick = raffle;
   el.querySelectorAll("[data-confirm]").forEach(b=>b.onclick=()=>{const id=b.dataset.confirm,p=S.players[id];
@@ -626,40 +722,39 @@ function callBingo(){
   B.patchMe({marks:S.me.marks, bingo:S.me.bingo, claimRound:S.game.round}).catch(()=>toast("Your Bingo did not reach the host. Try again."));
 }
 
-let claimNo = null;
-function openClaim(no){
-  claimNo = no;
-  const dlg = document.getElementById("claimDlg");
-  document.getElementById("claimCard").innerHTML = `<div class="mcard gift" id="claimFace" style="${wrapVars(no)}">${bowSvg(no)}${maskSvg(no)}<span class="no">No. ${pad(no)}</span></div>`;
-  const has = myCard(), locked = has && S.game.called.length>0;
-  document.getElementById("claimTitle").textContent = `Unwrap card No. ${pad(no)}?`;
-  document.getElementById("claimSub").textContent = locked ? `You already hold card No. ${pad(S.me.card)}, and cards lock once calling starts.`
-    : has ? `This swaps your current card No. ${pad(S.me.card)} for this one.` : "It will be yours for the night. Nobody else can claim it.";
-  document.getElementById("claimGo").disabled = !!locked;
-  const nm = document.getElementById("claimName"); nm.value = (S.me && S.me.name) || S.myName || nm.value;
-  document.getElementById("claimErr").textContent = "";
-  dlg.hidden = false; setTimeout(()=>nm.focus(), 30);
+/* Registration: pick a random free card number and claim it; retry if someone beat us to it */
+let joining = false;
+async function joinGame(name){
+  for (let tries = 0; tries < 10; tries++){
+    const cap = cardCap(), open = [];
+    for (let i=1;i<=cap;i++) if (!S.cards[i]) open.push(i);
+    if (!open.length) throw {code:"full"};
+    const no = open[Math.floor(Math.random()*open.length)];
+    try { await B.claim(no, name); return no; }
+    catch(e){ if (!e || e.code!=="taken") throw e; S.cards[no] = S.cards[no] || {owner:"?", name:""}; }
+  }
+  throw {code:"busy"};
 }
-function closeClaim(){ document.getElementById("claimDlg").hidden = true; claimNo = null; }
-document.getElementById("claimCancel").onclick = closeClaim;
-document.getElementById("claimDlg").addEventListener("click", e => { if (e.target.id==="claimDlg") closeClaim(); });
-document.addEventListener("keydown", e => { if (e.key==="Escape" && !document.getElementById("claimDlg").hidden) closeClaim(); });
-document.getElementById("claimForm").addEventListener("submit", async e => {
+(function(){ const g = document.getElementById("joinGift"), n = 1 + Math.floor(Math.random()*120);
+  g.setAttribute("style", wrapVars(n)); g.innerHTML = `${bowSvg(n)}${maskSvg(n,"j")}<span class="q">?</span>`; })();
+document.getElementById("joinForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const name = document.getElementById("claimName").value.trim().replace(/\s+/g," "), err = document.getElementById("claimErr"), go = document.getElementById("claimGo");
-  if (!name){ err.textContent = "Add your name so the host can find you."; return; }
-  if (S.mode==="live" && !S.uid){ err.textContent = "Sign in to claim a card."; return; }
-  go.disabled = true; err.textContent = "";
+  const name = document.getElementById("joinName").value.trim().replace(/\s+/g," "), err = document.getElementById("joinErr"), go = document.getElementById("joinGo");
+  if (!name){ err.textContent = "Type your name so the host can find you."; return; }
+  if (S.mode==="live" && !S.uid){ err.textContent = "Sign in to claude.ai to get a card."; return; }
+  if (S.mode==="loading"){ err.textContent = "Still connecting to the game. Try again in a moment."; return; }
+  joining = true; go.disabled = true; go.textContent = "Unwrapping..."; err.textContent = "";
   try {
-    await B.claim(claimNo, name);
-    document.getElementById("claimFace").classList.add("flip");
+    const no = await joinGame(name);
     S.myName = name;
-    setTimeout(()=>{ closeClaim(); go.disabled=false; location.hash = "card"; render(); toast(`Card No. ${pad(S.me.card)} is yours.`); burst(); }, 800);
+    const gift = document.getElementById("joinGift"); gift.classList.add("flip");
+    setTimeout(()=>{ gift.classList.remove("flip"); joining = false; go.textContent = "Unwrap my card"; location.hash = "card"; render(); toast(`Welcome, ${name}! Card No. ${pad(no)} is yours.`); burst(); }, 800);
   } catch (x) {
-    go.disabled = false;
-    err.textContent = x && x.code==="taken" ? "Another guest just claimed this card. Pick a different gift."
-      : x && x.code==="invalid_argument" ? "You can view the wall, but your access does not allow claiming. Ask the host for Contributor access."
-      : "That claim did not go through. Try again in a moment.";
+    joining = false; go.disabled = false; go.textContent = "Unwrap my card";
+    err.textContent = x && x.code==="full" ? `All ${MAX_CARDS} cards are taken. Ask the host to free one up.`
+      : x && x.code==="busy" ? "Lots of guests are registering right now. Tap the button again."
+      : x && x.code==="invalid_argument" ? "Your access only allows watching. Ask the host for Contributor access."
+      : "Registration did not go through. Check your connection and try again.";
   }
 });
 
@@ -693,7 +788,7 @@ function startDemo(){
   S.mode = "demo"; S.uid = "you"; S.host = true; B = demoBackend();
   const ex = ["Example guest: Ana R.","Example guest: Joy M.","Example guest: Paolo D.","Example guest: Kim S.","Example guest: Leah T.","Example guest: Marco V."];
   [7,14,23,31,42,55].forEach((no,i)=>{ S.cards[no] = {owner:"ex"+i, name:ex[i]}; S.players["ex"+i] = {name:ex[i], card:no, marks:{round:1,cells:[]}, bingo:null}; });
-  S.game = {round:1, called:[3,10,0,22], winners:[], deck:DEFAULT_DECK};
+  S.game = {round:1, called:[3,10,0,22], winners:[], deck:DEFAULT_DECK, pattern:"line", used:["line"]};
   document.getElementById("notice").textContent = "Preview mode with example guests. Open the published page to play together; claims and calls are shared live there.";
   seenWinners = 0; render();
 }
@@ -706,7 +801,7 @@ function liveBackend(db){
   let gameChain = Promise.resolve();
   const meRef = () => db.doc("players/"+S.uid);
   return {
-    saveGame(g){ const body = {round:g.round, called:g.called, winners:g.winners||[], deck:g.deck||DEFAULT_DECK, updatedAt:Date.now()};
+    saveGame(g){ const body = {round:g.round, called:g.called, winners:g.winners||[], deck:g.deck||DEFAULT_DECK, pattern:g.pattern||"line", used:g.used||[g.pattern||"line"], updatedAt:Date.now()};
       return (gameChain = gameChain.then(()=>retry(()=>gameRef.set(body)), ()=>retry(()=>gameRef.set(body)))); },
     async claim(no, name){
       const ref = db.doc("cards/c"+no);
@@ -766,7 +861,7 @@ async function boot(){
     good(); ok();
     if (!s.metadata.fromCache){ clearTimeout(slow); if (notice.textContent.startsWith("Can't")) notice.textContent = ""; }
     const d = s.exists ? s.data() : null;
-    S.game = d ? {round:d.round||1, called:d.called||[], winners:d.winners||[], deck:d.deck||DEFAULT_DECK} : {round:1,called:[],winners:[],deck:DEFAULT_DECK};
+    S.game = d ? {round:d.round||1, called:d.called||[], winners:d.winners||[], deck:d.deck||DEFAULT_DECK, pattern:d.pattern||"line", used:d.used||[d.pattern||"line"]} : {round:1,called:[],winners:[],deck:DEFAULT_DECK,pattern:"line",used:["line"]};
     watchClaims(S.game.round);
     render();
   }, bad));
@@ -781,8 +876,7 @@ async function boot(){
 window.addEventListener("hashchange", render);
 
 /* ---------- Patterns (How to play) ---------- */
-document.getElementById("patterns").innerHTML = [["Horizontal",[10,11,12,13,14]],["Vertical",[2,7,12,17,22]],["Diagonal",[0,6,12,18,24]]]
-  .map(([n,on])=>`<div class="pat"><div class="g">${Array.from({length:25},(_,i)=>`<i class="${on.includes(i)?"on":""}"></i>`).join("")}</div>${n}</div>`).join("");
+document.getElementById("patterns").innerHTML = PATTERN_KEYS.map(k=>`<div class="pat">${patMini(PATTERNS[k].sets,12)}<b style="color:var(--ink)">${esc(PATTERNS[k].name)}</b><br>${esc(PATTERNS[k].hint)}</div>`).join("");
 
 /* ---------- String lights ---------- */
 (function(){ const el = document.getElementById("lights"), n = 26, cols = ["#ff4d5e","#ffd166","#3ddc84","#5aa9ff","#ff8fd8"];
