@@ -730,13 +730,41 @@ let B = null, seenWinners = -1, lastCalled = -1, heardCalls = -1;
 let bellsOn = false; try { bellsOn = localStorage.getItem("bells")==="1"; } catch(e){}
 let actx = null;
 function audio(){ if (!actx) { const A = window.AudioContext||window.webkitAudioContext; if (!A) return null; actx = new A(); } if (actx.state==="suspended") actx.resume(); return actx; }
-function tone(ac, f, t0, dur, type, vol){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.value=f;
-  g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(vol,t0+.01); g.gain.exponentialRampToValueAtTime(.0001,t0+dur); o.connect(g).connect(ac.destination); o.start(t0); o.stop(t0+dur+.05); }
-function chime(){ if (!bellsOn) return; const ac = audio(); if (!ac) return; const t = ac.currentTime;
-  [[1318.5,0],[1568,.12],[2093,.24]].forEach(([f,d])=>{ tone(ac,f,t+d,1.2,"sine",.16); tone(ac,f*2.76,t+d,.5,"sine",.04); });
-  for (let i=0;i<6;i++) tone(ac, 5200+Math.random()*1800, t+.02+i*.045, .07, "triangle", .03); }
-function fanfare(){ if (!bellsOn) return; const ac = audio(); if (!ac) return; const t = ac.currentTime;
-  [659.3,659.3,659.3,0,659.3,659.3,659.3,0,659.3,784,523.3,587.3,659.3].forEach((f,i)=>{ if (f) { tone(ac,f,t+i*.16,.35,"triangle",.12); tone(ac,f*2,t+i*.16,.25,"sine",.04); } }); }
+function tone(ac, f, t0, dur, type, vol, out){ const o=ac.createOscillator(), g=ac.createGain(); o.type=type; o.frequency.value=f;
+  g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(vol,t0+.01); g.gain.exponentialRampToValueAtTime(.0001,t0+dur); o.connect(g).connect(out||ac.destination); o.start(t0); o.stop(t0+dur+.05); }
+/* A struck bell: a few inharmonic partials that ring out, like a real handbell */
+function bell(ac, out, f, t, dur, vol){
+  [[1,1],[2.76,.32],[5.4,.12],[8.93,.05]].forEach(([m,v])=>{ const o=ac.createOscillator(), g=ac.createGain(); o.type="sine"; o.frequency.value=f*m;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol*v,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+dur/(m>1?m*.6:1));
+    o.connect(g).connect(out); o.start(t); o.stop(t+dur+.1); });
+}
+/* Sleigh bells: bursts of short, bright, jangling clicks */
+function sleigh(ac, out, t, dur, vol){
+  for (let k=0; k<dur*38; k++){ const at = t + k/38 + Math.random()*.012, shake = .55 + .45*Math.abs(Math.sin(k/38*Math.PI*4));
+    tone(ac, 4200+Math.random()*3200, at, .05+Math.random()*.04, "triangle", vol*shake, out); }
+}
+function bus(ac){ const g=ac.createGain(); g.gain.value=.9; const c=ac.createDynamicsCompressor(); g.connect(c).connect(ac.destination); return g; }
+/* Each new draw: a sleigh-bell shake, a rising bell flourish and a ringing chord (about 3 seconds) */
+function chime(){ if (!bellsOn) return; const ac = audio(); if (!ac) return; const t = ac.currentTime + .03, out = bus(ac);
+  sleigh(ac, out, t, 1.2, .045);
+  [1046.5,1318.5,1568,2093,1568,2093,2637].forEach((f,i)=>bell(ac, out, f, t+.25+i*.13, 1.4, .13));
+  [1046.5,1318.5,1568,2093].forEach(f=>bell(ac, out, f, t+1.25, 2.2, .085));
+  sleigh(ac, out, t+1.25, .9, .03);
+}
+/* A confirmed Bingo winner: the Jingle Bells chorus (1857, public domain) with sleigh bells, bass and a final chord (about 9 seconds) */
+function fanfare(){ if (!bellsOn) return; const ac = audio(); if (!ac) return; const t0 = ac.currentTime + .05, out = bus(ac), b = .19;
+  const E=659.3,G=784,C=523.3,D=587.3,F=698.5;
+  // [note, beats]: Jingle bells, jingle bells, jingle all the way; oh what fun it is to ride in a one-horse open sleigh, hey!
+  const tune = [[E,1],[E,1],[E,2],[E,1],[E,1],[E,2],[E,1],[G,1],[C,1.5],[D,.5],[E,4],
+                [F,1],[F,1],[F,1.5],[F,.5],[F,1],[E,1],[E,1],[E,.5],[E,.5],[E,1],[D,1],[D,1],[E,1],[D,2],[G,2]];
+  let t = t0;
+  tune.forEach(([f,n])=>{ tone(ac,f,t,Math.max(.25,n*b*1.1),"triangle",.12,out); tone(ac,f*2,t,n*b*.8,"sine",.035,out); bell(ac,out,f*2,t,.6,.03); t += n*b; });
+  const end = t;
+  [[130.8,0],[196,4],[130.8,8],[196,12],[174.6,16],[130.8,20],[146.8,24],[196,28]].forEach(([f,beat])=>tone(ac,f,t0+beat*b,b*3.5,"sine",.09,out));
+  sleigh(ac, out, t0, end-t0+.2, .028);
+  [523.3,659.3,784,1046.5,1568].forEach(f=>{ tone(ac,f,end+.05,2.2,"triangle",.07,out); bell(ac,out,f*2,end+.05,2.4,.05); });
+  sleigh(ac, out, end, 1.6, .045);
+}
 
 function validMarks(me, card){
   const set = new Set([FREE]);
