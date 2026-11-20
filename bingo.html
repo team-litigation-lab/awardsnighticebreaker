@@ -3,7 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js" defer onload="window.drawIcons&&drawIcons()"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;600;700&family=Pinyon+Script&family=Mulish:wght@400;600;700;800&display=swap">
 <style>
 /* Layout: a masquerade ballroom at night. Masthead, then one view at a time:
@@ -375,7 +375,8 @@ const LINES = (() => { const L = [];
   for (let c = 0; c < 5; c++) L.push([0,1,2,3,4].map(r => r*5+c));
   L.push([0,6,12,18,24],[4,8,12,16,20]); return L; })();
 const MASK_COLORS = [["#e3c06a","#f7e3a6"],["#c8374a","#f0a0ab"],["#2f8f5b","#9be0b8"],["#3e63c9","#a9bdf5"],["#c9c9d6","#ffffff"],["#b04fa0","#eab0de"],["#1f1f2b","#d9b45a"]];
-const DECK_SIZES = [30,40,60,80,100];
+const DECK_SIZES = [60,80,100,120,150,200];
+const DEFAULT_DECK = 120;
 
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const cardCache = {};
@@ -398,7 +399,7 @@ function linesOf(set){return LINES.filter(l=>l.every(p=>set.has(p)))}
 
 /* ---------- State ---------- */
 const S = { mode:"loading", uid:null, host:false, myName:"",
-  game:{round:1,called:[],winners:[],deck:60}, cards:{}, players:{}, me:null };
+  game:{round:1,called:[],winners:[],deck:DEFAULT_DECK}, cards:{}, players:{}, me:null, cardsLoaded:false };
 let B = null, seenWinners = -1, lastCalled = -1, heardCalls = -1;
 let bellsOn = false; try { bellsOn = localStorage.getItem("bells")==="1"; } catch(e){}
 let actx = null;
@@ -424,7 +425,7 @@ const VIEWS = ["wall","card","host","rules"];
 function currentView(){
   const h = location.hash.slice(1);
   if (VIEWS.includes(h) && (h!=="host"||S.host)) return h;
-  return S.me && S.me.card ? "card" : "wall";
+  return myCard() ? "card" : "wall";
 }
 function renderNav(v){
   const tabs = [["wall","Gift Wall"],["card","My Card"]];
@@ -434,7 +435,9 @@ function renderNav(v){
     + `<button type="button" class="bells" id="bellsBtn" aria-pressed="${bellsOn}"><i data-lucide="${bellsOn?"bell-ring":"bell-off"}"></i>Bells ${bellsOn?"on":"off"}</button>`;
   document.getElementById("bellsBtn").onclick = () => { bellsOn = !bellsOn; try{localStorage.setItem("bells", bellsOn?"1":"0")}catch(e){} if (bellsOn) chime(); render(); };
 }
-function render(){
+let renderQueued = false;
+function render(){ if (renderQueued) return; renderQueued = true; requestAnimationFrame(()=>{ renderQueued = false; renderNow(); }); }
+function renderNow(){
   const v = currentView();
   renderNav(v);
   VIEWS.forEach(k => document.getElementById("v-"+k).hidden = k!==v);
@@ -443,9 +446,10 @@ function render(){
   if (v==="card") renderCard();
   if (v==="host") renderHost();
   document.body.classList.toggle("focus", v==="card");
-  if (S.mode!=="loading") { if (heardCalls >= 0 && S.game.called.length > heardCalls) chime(); heardCalls = S.game.called.length; }
+  if (S.mode!=="loading") { if (heardCalls >= 0 && S.game.called.length > heardCalls) chime(); heardCalls = S.game.called.length; lastCalled = S.game.called.length; }
   drawIcons();
 }
+window.drawIcons = drawIcons;
 function drawIcons(){ try { if (window.lucide) window.lucide.createIcons({attrs:{"aria-hidden":"true"}}); } catch(e){} }
 function renderBanner(){
   const w = S.game.winners||[], el = document.getElementById("banner");
@@ -454,7 +458,12 @@ function renderBanner(){
   const last = w[w.length-1];
   el.innerHTML = last ? `<div class="banner"><div class="k">Merry Christmas · ${last.kind==="raffle"?"Raffle winner":"Round "+last.round+" Bingo winner"}</div><div class="v">${esc(last.name)} · Card No. ${pad(last.card)}</div></div>` : "";
 }
-function deckCount(){const nums=Object.keys(S.cards).map(Number);return Math.max(S.game.deck||60,...nums,0)}
+function deckCount(){const nums=Object.keys(S.cards).map(Number);
+  /* never run out: keep at least 12 wrapped cards on the wall, whatever the setting */
+  const roomy=Math.ceil((nums.length+12)/10)*10;
+  return Math.max(S.game.deck||DEFAULT_DECK,roomy,...nums,0)}
+/* my card only counts if the wall agrees it is still mine (host may have released it) */
+function myCard(){ if(!S.me||!S.me.card) return null; if(S.mode==="live"&&S.cardsLoaded){const c=S.cards[S.me.card]; if(!c||c.owner!==S.uid) return null;} return S.me.card; }
 
 function renderWall(){
   const n = deckCount(), taken = Object.keys(S.cards).length, mine = S.me && S.me.card;
@@ -499,7 +508,7 @@ function cellHtml(item,i,cls){
 }
 function renderCard(){
   const el = document.getElementById("v-card"), me = S.me;
-  if (!me || !me.card){
+  if (!myCard()){
     el.innerHTML = `<div class="panel" style="text-align:center"><h2>You have not picked a card yet</h2>
       <p class="sub" style="margin-inline:auto">Head to the Gift Wall, pick any wrapped card, and unwrap it under your name.</p>
       <a class="btn primary big" href="#wall" style="text-decoration:none;display:inline-block">Go to the Gift Wall</a></div>`;
@@ -536,7 +545,7 @@ function miniCard(p){
   const card = cardFor(p.card), called = new Set(S.game.called), valid = validMarks(p, card), wins = new Set(linesOf(valid).flat());
   return `<div class="mini">${card.map((it,i)=>`<span class="${it<0?"f":""} ${called.has(it)?"c":""} ${valid.has(i)&&it>=0?"m":""} ${wins.has(i)?"w":""}" title="${it<0?"Free":esc(ITEMS[it][0])}">${it<0?"FREE":esc(ITEMS[it][0])}</span>`).join("")}</div>`;
 }
-let raffleSpin = null;
+let raffleSpin = null, drawLock = 0;
 function renderHost(){
   const g = S.game, last = g.called[g.called.length-1], el = document.getElementById("v-host");
   const claims = Object.entries(S.players).filter(([,p])=>p.bingo && p.bingo.round===g.round && !p.bingo.status);
@@ -565,12 +574,12 @@ function renderHost(){
       <div class="panel"><h3>Call board</h3><div class="chips">${ITEMS.map((it,i)=>{const k=g.called.indexOf(i);return `<span class="chip ${k>=0?"on":""}">${k>=0?`<span class="i">${k+1}</span>`:""}<i data-lucide="${ICONS[i]}" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"></i>${esc(it[0])}</span>`}).join("")}</div></div>
       <div class="panel"><h3>Guests and cards</h3>${guests.length?`<ul class="list">${guests.map(([no,c])=>`<li><span class="tag">No. ${pad(no)}</span><span class="nm">${esc(c.name)}</span><button class="btn ghost x" data-release="${no}" data-owner="${esc(c.owner)}">Release</button></li>`).join("")}</ul>`:`<p class="empty">No cards claimed yet. Share this page so guests can pick from the wall.</p>`}</div>
       <div class="panel"><h3>Event settings</h3>
-        <div class="row"><label for="deckSel" style="margin:0">Cards on the wall</label><select id="deckSel">${DECK_SIZES.map(s=>`<option value="${s}"${s===(g.deck||60)?" selected":""}>${s}</option>`).join("")}</select></div>
+        <div class="row"><label for="deckSel" style="margin:0">Cards on the wall</label><select id="deckSel">${DECK_SIZES.map(s=>`<option value="${s}"${s===(g.deck||DEFAULT_DECK)?" selected":""}>${s}</option>`).join("")}</select></div>
         <div class="row" style="margin-top:14px"><button class="btn danger" id="hReset">Reset calls and winners</button><button class="btn danger" id="hClear">Clear every card</button></div>
         <p class="sub" style="margin-top:10px;font-size:13px">Resetting keeps everyone's cards. Clearing returns every card to the wall.</p></div>
     </div>`;
   if (raffleSpin) document.getElementById("raffleName").textContent = raffleSpin;
-  document.getElementById("hNext").onclick = () => { const left=ITEMS.map((_,i)=>i).filter(i=>!g.called.includes(i)); if(!left.length) return;
+  document.getElementById("hNext").onclick = () => { if (Date.now() < drawLock) return; drawLock = Date.now() + 900; const left=ITEMS.map((_,i)=>i).filter(i=>!g.called.includes(i)); if(!left.length) return;
     saveGame({...g, called:[...g.called, left[Math.floor(Math.random()*left.length)]]}); };
   document.getElementById("hUndo").onclick = () => saveGame({...g, called:g.called.slice(0,-1)});
   armButton(document.getElementById("hRound"), `Tap again to start round ${g.round+1}`, () => saveGame({...g, round:g.round+1, called:[]}));
@@ -602,7 +611,7 @@ function raffle(){
 }
 
 /* ---------- Actions ---------- */
-function saveGame(g){ S.game = g; render(); lastCalled = g.called.length; B.saveGame(g).catch(()=>toast("That change did not save. Only the host can run the game.")); }
+function saveGame(g){ S.game = g; render(); B.saveGame(g).catch(()=>toast("That change did not save. Only the host can run the game.")); }
 let markTimer = null;
 function toggleMark(p, el){
   const me = S.me, card = cardFor(me.card), item = card[p];
@@ -614,7 +623,7 @@ function toggleMark(p, el){
 }
 function callBingo(){
   S.me = {...S.me, bingo:{round:S.game.round, at:Date.now()}}; render(); burst();
-  B.patchMe({marks:S.me.marks, bingo:S.me.bingo}).catch(()=>toast("Your Bingo did not reach the host. Try again."));
+  B.patchMe({marks:S.me.marks, bingo:S.me.bingo, claimRound:S.game.round}).catch(()=>toast("Your Bingo did not reach the host. Try again."));
 }
 
 let claimNo = null;
@@ -622,7 +631,7 @@ function openClaim(no){
   claimNo = no;
   const dlg = document.getElementById("claimDlg");
   document.getElementById("claimCard").innerHTML = `<div class="mcard gift" id="claimFace" style="${wrapVars(no)}">${bowSvg(no)}${maskSvg(no)}<span class="no">No. ${pad(no)}</span></div>`;
-  const has = S.me && S.me.card, locked = has && S.game.called.length>0;
+  const has = myCard(), locked = has && S.game.called.length>0;
   document.getElementById("claimTitle").textContent = `Unwrap card No. ${pad(no)}?`;
   document.getElementById("claimSub").textContent = locked ? `You already hold card No. ${pad(S.me.card)}, and cards lock once calling starts.`
     : has ? `This swaps your current card No. ${pad(S.me.card)} for this one.` : "It will be yours for the night. Nobody else can claim it.";
@@ -684,38 +693,42 @@ function startDemo(){
   S.mode = "demo"; S.uid = "you"; S.host = true; B = demoBackend();
   const ex = ["Example guest: Ana R.","Example guest: Joy M.","Example guest: Paolo D.","Example guest: Kim S.","Example guest: Leah T.","Example guest: Marco V."];
   [7,14,23,31,42,55].forEach((no,i)=>{ S.cards[no] = {owner:"ex"+i, name:ex[i]}; S.players["ex"+i] = {name:ex[i], card:no, marks:{round:1,cells:[]}, bingo:null}; });
-  S.game = {round:1, called:[3,10,0,22], winners:[], deck:60};
-  lastCalled = 0;
+  S.game = {round:1, called:[3,10,0,22], winners:[], deck:DEFAULT_DECK};
   document.getElementById("notice").textContent = "Preview mode with example guests. Open the published page to play together; claims and calls are shared live there.";
   seenWinners = 0; render();
 }
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+/* retry transient platform hiccups (busy store, brief network drop) a couple of times */
+async function retry(fn){ for (let i=0;;i++){ try { return await fn(); } catch(e){
+  const c = e && e.code; if (i>=2 || !(c==="unavailable"||c==="resource_exhausted")) throw e; await sleep(400+Math.random()*900*(i+1)); } } }
 function liveBackend(db){
   const gameRef = db.doc("game/state");
   let gameChain = Promise.resolve();
   const meRef = () => db.doc("players/"+S.uid);
   return {
-    saveGame(g){ const body = {round:g.round, called:g.called, winners:g.winners||[], deck:g.deck||60, updatedAt:Date.now()};
-      return (gameChain = gameChain.then(()=>gameRef.set(body), ()=>gameRef.set(body))); },
+    saveGame(g){ const body = {round:g.round, called:g.called, winners:g.winners||[], deck:g.deck||DEFAULT_DECK, updatedAt:Date.now()};
+      return (gameChain = gameChain.then(()=>retry(()=>gameRef.set(body)), ()=>retry(()=>gameRef.set(body)))); },
     async claim(no, name){
       const ref = db.doc("cards/c"+no);
-      const lease = await ref.acquire({holder:S.uid, ttlMs:5000});
+      const lease = await retry(()=>ref.acquire({holder:S.uid, ttlMs:8000}));
       if (!lease.acquired) throw {code:"taken"};
-      const snap = await ref.get(), cur = snap.exists ? snap.data() : null;
+      const snap = await retry(()=>ref.get()), cur = snap.exists ? snap.data() : null;
       if (cur && cur.owner && cur.owner!==S.uid) throw {code:"taken"};
-      await ref.set({owner:S.uid, name, at:Date.now()});
-      const prev = S.me && S.me.card;
-      const me = {name, card:no, marks:{round:S.game.round,cells:[]}, bingo:null, joinedAt:Date.now()};
-      await meRef().set(me);
+      await retry(()=>ref.set({owner:S.uid, name, at:Date.now()}));
+      const prev = myCard();
+      const me = {name, card:no, marks:{round:S.game.round,cells:[]}, bingo:null, claimRound:0, joinedAt:Date.now()};
+      try { await retry(()=>meRef().set(me)); }
+      catch(e){ ref.delete().catch(()=>{}); throw e; }   /* don't leave a half-claimed card on the wall */
       S.me = me; S.cards[no] = {owner:S.uid, name};
-      if (prev && prev!==no){ delete S.cards[prev]; await db.doc("cards/c"+prev).delete(); }
+      if (prev && prev!==no){ delete S.cards[prev]; await retry(()=>db.doc("cards/c"+prev).delete()).catch(()=>{}); }
     },
     async release(no, owner){
-      await db.doc("cards/c"+no).delete();
-      if (owner) await db.doc("players/"+owner).delete();
+      await retry(()=>db.doc("cards/c"+no).delete());
+      if (owner) await retry(()=>db.doc("players/"+owner).delete()).catch(()=>{});
       if (owner===S.uid) S.me = null;
     },
-    patchMe(p){ return meRef().update(p); },
-    patchPlayer(id, p){ return db.doc("players/"+id).update(p); }
+    patchMe(p){ return retry(()=>meRef().update(p)); },
+    patchPlayer(id, p){ return retry(()=>db.doc("players/"+id).update(p)); }
   };
 }
 async function boot(){
@@ -729,18 +742,41 @@ async function boot(){
   const notice = document.getElementById("notice");
   if (!S.uid) notice.textContent = "Sign in to claim a card. You can still watch the wall.";
   const slow = setTimeout(()=>{ notice.textContent = "Can't reach the game yet. The wall may be out of date until the connection returns."; }, 10000);
-  const fail = () => { notice.textContent = "The live game stopped updating. Reload the page to reconnect."; };
-  db.doc("game/state").onSnapshot(s => {
+  /* keep each listener alive: a dropped connection resubscribes by itself with backoff */
+  function watch(name, open){
+    let tries = 0, unsub = null;
+    const start = () => { unsub = open(() => { tries = 0; }, e => {
+      const code = e && e.code;
+      if (code==="revoked" || code==="not_granted" || code==="capability_disabled"){ notice.textContent = "This page lost access to the live game. Reload to reconnect."; return; }
+      if (tries++ < 8){ notice.textContent = "Reconnecting to the live game..."; setTimeout(start, Math.min(30000, 1500*2**tries) * (0.6+Math.random()*0.8)); }
+      else notice.textContent = "The live game stopped updating. Reload the page to reconnect.";
+    }); };
+    start();
+    return () => unsub && unsub();
+  }
+  const ok = () => { if (notice.textContent.startsWith("Reconnecting")) notice.textContent = ""; };
+  let claimRound = null, stopClaims = null;
+  function watchClaims(round){
+    if (!S.host || claimRound===round) return;
+    claimRound = round; if (stopClaims) stopClaims(); S.players = {};
+    stopClaims = watch("claims", (good, bad) => db.collection("players").where("claimRound","==",round).onSnapshot(s => {
+      good(); ok(); const m = {}; s.docs.forEach(d => m[d.id] = d.data()); S.players = m; render(); }, bad));
+  }
+  watch("game", (good, bad) => db.doc("game/state").onSnapshot(s => {
+    good(); ok();
     if (!s.metadata.fromCache){ clearTimeout(slow); if (notice.textContent.startsWith("Can't")) notice.textContent = ""; }
     const d = s.exists ? s.data() : null;
-    S.game = d ? {round:d.round||1, called:d.called||[], winners:d.winners||[], deck:d.deck||60} : {round:1,called:[],winners:[],deck:60};
-    render(); lastCalled = S.game.called.length;
-  }, fail);
-  db.collection("cards").onSnapshot(s => {
-    const m = {}; s.docs.forEach(d => { const v = d.data(); if (v && v.owner) m[+d.id.slice(1)] = v; }); S.cards = m; render();
-  }, fail);
-  if (S.uid) db.doc("players/"+S.uid).onSnapshot(s => { S.me = s.exists ? s.data() : null; render(); }, fail);
-  if (S.host) db.collection("players").onSnapshot(s => { const m = {}; s.docs.forEach(d => m[d.id] = d.data()); S.players = m; render(); }, fail);
+    S.game = d ? {round:d.round||1, called:d.called||[], winners:d.winners||[], deck:d.deck||DEFAULT_DECK} : {round:1,called:[],winners:[],deck:DEFAULT_DECK};
+    watchClaims(S.game.round);
+    render();
+  }, bad));
+  watch("cards", (good, bad) => db.collection("cards").onSnapshot(s => {
+    good(); ok();
+    const m = {}; s.docs.forEach(d => { const v = d.data(); if (v && v.owner) m[+d.id.slice(1)] = v; }); S.cards = m;
+    if (!s.metadata.fromCache) S.cardsLoaded = true;
+    render();
+  }, bad));
+  if (S.uid) watch("me", (good, bad) => db.doc("players/"+S.uid).onSnapshot(s => { good(); ok(); S.me = s.exists ? s.data() : null; render(); }, bad));
 }
 window.addEventListener("hashchange", render);
 
