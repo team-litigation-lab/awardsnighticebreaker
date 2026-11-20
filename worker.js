@@ -18,8 +18,8 @@ export default {
     try {
       if (url.pathname === "/api/ping") return json({ ok: true });
       if (url.pathname === "/api/stats") { await ensureSchema(env.DB); return json(await stats(env.DB)); }
-      if (url.pathname === "/api/sync" && request.method === "POST") { await ensureSchema(env.DB); const b = await body(request); return json(await steady(() => sync(env.DB, b))); }
-      if (url.pathname === "/api/act" && request.method === "POST") { await ensureSchema(env.DB); const b = await body(request); return json(await steady(() => act(env.DB, b))); }
+      if (url.pathname === "/api/sync" && request.method === "POST") { await ensureSchema(env.DB); const b = await body(request); return json(await steady(() => sync(env.DB, b, env))); }
+      if (url.pathname === "/api/act" && request.method === "POST") { await ensureSchema(env.DB); const b = await body(request); return json(await steady(() => act(env.DB, b, env))); }
       if (url.pathname.startsWith("/api/")) return json({ ok: false, code: "not_found" }, 404);
     } catch (e) {
       if (e && e.code) return json({ ok: false, code: e.code, message: e.message || "" });
@@ -134,28 +134,31 @@ async function identify(db, b) {
   else if (row.h !== h) fail("auth", "This device id belongs to someone else.");
   return uid;
 }
-async function isHost(db, pin) {
-  pin = str(pin, 40); if (!pin) return false;
-  const r = await db.prepare("SELECT v FROM kv WHERE k='pin'").first();
-  return !!(r && r.v === await sha("vlb:" + pin));
+/* The host PIN is the HOST_PIN secret set in Cloudflare (Workers & Pages → awardsnighticebreaker → Settings →
+   Variables and Secrets). It can't be created or changed from the website, so no guest can claim the host page.
+   Without the secret, nobody can sign in as host. */
+const pinOf = env => str(env && env.HOST_PIN, 40);
+async function isHost(db, pin, env) {
+  pin = str(pin, 40); const real = pinOf(env);
+  if (!pin || real.length < 4) return false;
+  return (await sha("vlb:" + pin)) === (await sha("vlb:" + real));   // compare digests, not the raw strings
 }
 
-async function sync(db, b) {
+async function sync(db, b, env) {
   // the hot path (every phone, every ~2 s): identity, versions, my card and the host PIN in ONE round trip
   const uid = str(b.uid, 64), tok = str(b.tok, 80);
   if (!/^g_[a-z0-9]{8,40}$/.test(uid) || tok.length < 16) fail("auth", "Missing device id.");
-  const [tokRow, vers, meRow, pinRow] = await db.batch([
+  const [tokRow, vers, meRow] = await db.batch([
     db.prepare("SELECT h FROM tokens WHERE uid = ?").bind(uid),
     db.prepare("SELECT k, n FROM vers"),
     db.prepare("SELECT data FROM players WHERE uid = ?").bind(uid),
-    db.prepare("SELECT v FROM kv WHERE k='pin'"),
   ]);
   if (!tokRow.results[0]) await identify(db, b);
   else if (tokRow.results[0].h !== await sha("tok:" + tok)) fail("auth", "This device id belongs to someone else.");
   const v = {}; for (const r of vers.results) v[r.k] = r.n;
-  const host = !!(pinRow.results[0] && str(b.pin, 40) && pinRow.results[0].v === await sha("vlb:" + str(b.pin, 40)));
+  const host = await isHost(db, b.pin, env);
   const have = b.have && typeof b.have === "object" ? b.have : {};
-  const out = { ok: true, v: {}, me: meRow.results[0] ? parse(meRow.results[0].data, null) : null, host, hostSet: !!pinRow.results[0] };
+  const out = { ok: true, v: {}, me: meRow.results[0] ? parse(meRow.results[0].data, null) : null, host, hostSet: pinOf(env).length >= 4 };
   const want = SECTIONS.filter(k => (k !== "claims" || host) && have[k] !== v[k]);
   let game = null;
   if (want.includes("game") || want.includes("claims")) game = await getGame(db);
@@ -172,9 +175,9 @@ async function stats(db) {
 
 /* ---------------- actions ---------------- */
 const loginTries = new Map();
-async function act(db, m) {
+async function act(db, m, env) {
   const uid = await identify(db, m);
-  const needHost = async () => { if (!(await isHost(db, m.pin))) fail("forbidden", "Only the host can do that."); };
+  const needHost = async () => { if (!(await isHost(db, m.pin, env))) fail("forbidden", "Only the host can do that."); };
   switch (m.op) {
     case "join": {
       // Register by name: the server picks a free card itself, so 150 people joining at once never collide.
@@ -266,11 +269,9 @@ async function act(db, m) {
       const tries = (loginTries.get(uid) || []).filter(t => now - t < 60000);
       if (tries.length >= 6) fail("rate_limited", "Too many tries. Wait a minute and try again.");
       tries.push(now); loginTries.set(uid, tries);
-      if (pin.length < 4) fail("invalid_argument", "The PIN needs at least 4 characters.");
-      const h = await sha("vlb:" + pin);
-      const created = (await db.prepare("INSERT INTO kv(k, v) VALUES ('pin', ?) ON CONFLICT(k) DO NOTHING").bind(h).run()).meta.changes > 0;
-      if (!created && !(await isHost(db, pin))) fail("badpin", "That PIN is not right.");
-      return { ok: true, created, claims: await readSection(db, "claims") };
+      if (pinOf(env).length < 4) fail("not_setup", "The host page is locked: no host PIN has been set up in Cloudflare yet.");
+      if (!(await isHost(db, pin, env))) fail("badpin", "That PIN is not right.");
+      return { ok: true, claims: await readSection(db, "claims") };
     }
     default: fail("invalid_argument", "Unknown action.");
   }

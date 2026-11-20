@@ -4,7 +4,7 @@ A Christmas party icebreaker and raffle game for the 2026 LSH VA Awards Night.
 
 The game is `public/index.html`. The same file runs in two places:
 
-- **Cloudflare (this repository):** `worker.js` serves the page and keeps the live game in a **D1 database** (`awardsnighticebreaker`, bound as `DB` in `wrangler.jsonc`). Every phone checks `/api/sync` about every 2 seconds and downloads only the parts that changed; actions go to `/api/act`. Guests type their name and the server picks them a free card, so two people never get the same one. The first visit to `/#host` sets the **host PIN**. Cloudflare Workers Builds deploys `main` automatically. The game doesn't use a Durable Object because the account is at its 500-namespace limit.
+- **Cloudflare (this repository):** `worker.js` serves the page and keeps the live game in a **D1 database** (`awardsnighticebreaker`, bound as `DB` in `wrangler.jsonc`). Every phone checks `/api/sync` about every 2 seconds and downloads only the parts that changed; actions go to `/api/act`. Guests type their name and the server picks them a free card, so two people never get the same one. The **host PIN** is a Cloudflare secret, `HOST_PIN` (Workers & Pages → awardsnighticebreaker → Settings → Variables and Secrets). It can't be created or changed from the website, and the Host Stage stays locked until it's set. **Host sign-in** is in the top menu. Cloudflare Workers Builds deploys `main` automatically. The game doesn't use a Durable Object because the account is at its 500-namespace limit.
 - **claude.ai artifact:** live data and sign-in come from claude.ai instead.
 
 Opened any other way (for example as a local file), the page starts a preview with example guests.

@@ -150,7 +150,7 @@ h3{font-family:var(--f-head);font-weight:700;font-size:15px;margin:0 0 8px;color
 .dialog .mcard.flip{animation:flip .9s ease both}
 @keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) scale(1.05)}100%{transform:rotateY(0)}}
 label{display:block;text-align:left;font-family:var(--f-head);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:6px 0}
-input[type=text],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--night);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+input[type=text],input[type=password],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--night);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
 select{width:auto}
 .err{color:#ffb3bd;font-size:13px;min-height:1.4em;margin:8px 0 0}
 
@@ -566,7 +566,6 @@ footer small{display:block;font-family:var(--f-head);font-size:11px;letter-spaci
         </ol>
         <h3 style="margin-top:20px">Winning patterns</h3><p class="sub">The host uses a different pattern each round. Each one needs only a few squares, so rounds take minutes.</p>
         <div class="patlist" id="patterns"></div>
-        <p class="sub" id="hostLink" hidden style="margin-top:18px">Running the game? <a href="#host" style="color:var(--gold-hi)">Host sign-in</a></p>
       </div>
     </section>
   </main>
@@ -761,9 +760,10 @@ function currentView(){
 function renderNav(v){
   const tabs = [myCard() ? ["card","My Card"] : ["join","Get My Card"]];
   if (S.host) tabs.push(["host","Host Stage"]);
+  else if (S.mode==="cloud") tabs.push(["host","Host sign-in"]);   // locked: opens the PIN screen
   tabs.splice(1,0,["shout","Shout-outs"]);
   tabs.push(["rules","How to Play"]);
-  document.getElementById("nav").innerHTML = tabs.map(([k,l])=>`<a href="#${k}"${k===v?' aria-current="page"':""}>${l}</a>`).join("")
+  document.getElementById("nav").innerHTML = tabs.map(([k,l])=>`<a href="#${k}"${(k===v || (k==="host" && v==="login"))?' aria-current="page"':""}>${k==="host"&&!S.host?'<i data-lucide="lock" style="width:13px;height:13px;vertical-align:-2px;margin-right:5px"></i>':""}${l}</a>`).join("")
     + `<button type="button" class="bells" id="bellsBtn" aria-pressed="${bellsOn}"><i data-lucide="${bellsOn?"bell-ring":"bell-off"}"></i>Bells ${bellsOn?"on":"off"}</button>`;
   document.getElementById("bellsBtn").onclick = () => { bellsOn = !bellsOn; try{localStorage.setItem("bells", bellsOn?"1":"0")}catch(e){} if (bellsOn) chime(); render(); };
 }
@@ -781,7 +781,6 @@ function renderNow(){
   if (v==="host") renderHost();
   if (v==="shout") renderShout();
   if (v==="login") renderLogin();
-  document.getElementById("hostLink").hidden = !(S.mode==="cloud" && !S.host);
   renderScreen(v==="screen");
   document.body.classList.toggle("focus", v==="card" || v==="host");
   document.body.classList.toggle("screenmode", v==="screen");
@@ -1319,12 +1318,14 @@ function startCloud(){
   B = cloudBackend(); render();
 }
 function renderLogin(){
-  const fresh = S.hostSet === false;
-  document.getElementById("loginTitle").textContent = fresh ? "Set the host PIN" : "Host sign-in";
-  document.getElementById("loginSub").textContent = fresh
-    ? "No host PIN has been set yet. Choose one now (at least 4 characters). Only someone with this PIN can run the draws, confirm winners and moderate shout-outs."
+  const locked = S.hostSet === false;
+  document.getElementById("loginTitle").textContent = locked ? "Host page locked" : "Host sign-in";
+  document.getElementById("loginSub").textContent = locked
+    ? "The host page is locked until the organizer sets a host PIN in Cloudflare (Workers & Pages → awardsnighticebreaker → Settings → Variables and Secrets → HOST_PIN)."
     : "Enter the host PIN to run the draws, check Bingo claims and moderate shout-outs.";
-  document.getElementById("loginGo").textContent = fresh ? "Set PIN and open the Host Stage" : "Sign in as host";
+  document.getElementById("loginGo").textContent = "Sign in as host";
+  document.getElementById("loginGo").disabled = locked;
+  document.getElementById("hostPin").disabled = locked;
 }
 document.getElementById("loginForm").addEventListener("submit", async e => {
   e.preventDefault();
