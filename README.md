@@ -1,4 +1,4 @@
-# VA Life Bingo: Masquerade Edition
+# VA Life Bingo
 
 Year-end party icebreaker and raffle game for the 2026 LSH VA Awards Night.
 
