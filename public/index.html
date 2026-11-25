@@ -616,14 +616,17 @@ const LINES = (() => { const L = [];
   for (let c = 0; c < 5; c++) L.push([0,1,2,3,4].map(r => r*5+c));
   L.push([0,6,12,18,24],[4,8,12,16,20]); return L; })();
 const MASK_COLORS = [["#e3c06a","#f7e3a6"],["#c8374a","#f0a0ab"],["#2f8f5b","#9be0b8"],["#3e63c9","#a9bdf5"],["#c9c9d6","#ffffff"],["#b04fa0","#eab0de"],["#1f1f2b","#d9b45a"]];
-const DECK_SIZES = [100,120,150];
-const DEFAULT_DECK = 120, MIN_CARDS = 100, MAX_CARDS = 150;
+const DECK_SIZES = [100,120,155];
+const DEFAULT_DECK = 120, MIN_CARDS = 100, MAX_CARDS = 155;   // 150 VAs + 5 extra cards
 
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-/* Cards are built in number order on every device, so they always match.
-   A card whose set of 24 squares already appeared on a lower-numbered card is redrawn,
-   so no two cards share the same squares (there are 118,755 possible sets). */
-const cardCache = {}, cardSets = new Set();
+/* Cards are built in number order on every device, so every phone and the host agree on each card.
+   Unique, not just random: a new card is redrawn if
+   - its 24 squares are the same set as a lower-numbered card's (118,755 possible sets), or
+   - any of its 12 lines (5 rows, 5 columns, 2 diagonals) holds the same VA moments as a line on another card,
+     in any order. So no two cards can complete a line on the same draws. */
+const cardCache = {}, cardSets = new Set(), cardLines = new Set();
+const lineKey = (c, l) => l.map(p => c[p]).filter(x => x >= 0).sort((x,y)=>x-y).join(",");
 let cardsBuilt = 0;
 function cardFor(no){
   while (cardsBuilt < no) {
@@ -633,8 +636,11 @@ function cardFor(no){
       for (let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
       const key = a.slice(24).sort((x,y)=>x-y).join(",");   /* the 5 VA moments left off identify the set */
       if (cardSets.has(key)) continue;
-      cardSets.add(key);
-      const c = a.slice(0,24); c.splice(FREE,0,-1); cardCache[n] = c; break;
+      const c = a.slice(0,24); c.splice(FREE,0,-1);
+      const keys = LINES.map(l => lineKey(c, l));
+      if (keys.some(k => cardLines.has(k)) || new Set(keys).size < keys.length) continue;
+      cardSets.add(key); keys.forEach(k => cardLines.add(k));
+      cardCache[n] = c; break;
     }
   }
   return cardCache[no];

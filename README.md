@@ -39,7 +39,7 @@ Opening the file outside claude.ai starts a local preview with example guests.
 Load-tested against the real Worker with D1 (`wrangler dev`, then `N=150 node loadtest.mjs`). Every simulated phone checked in every 2 seconds for the whole test:
 
 - **150 participants at once (run twice):**
-  - All 150 registered within about 2 s, with no duplicate cards.
+  - All 150 registered within about 2 s, with no duplicate cards. With 160 at once, 155 got cards (150 VAs + 5 extra) and 5 were told the cards are full.
   - Every phone received every draw: about 1 s on average, 2.3 s at most.
   - All 30 simultaneous Bingo claims reached the host.
   - All 150 shout-outs arrived, with no errors.

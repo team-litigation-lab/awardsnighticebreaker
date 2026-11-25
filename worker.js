@@ -69,7 +69,7 @@ async function ensureSchema(db) {
 }
 
 /* ---------------- validation ---------------- */
-const MAX_CARDS = 150, ITEM_COUNT = 29;
+const MAX_CARDS = 155, ITEM_COUNT = 29;   // 150 VAs + 5 extra cards
 const PATTERNS = ["line", "corners", "stamp", "plus", "smallx", "block", "diag", "cross"];
 const SECTIONS = ["game", "cards", "shouts", "mod", "claims"];
 const str = (v, max) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max) : "");
@@ -90,7 +90,7 @@ function cleanGame(g) {
   }));
   const pattern = PATTERNS.includes(g.pattern) ? g.pattern : "line";
   const used = (Array.isArray(g.used) ? g.used : []).filter(k => PATTERNS.includes(k)).slice(0, PATTERNS.length);
-  return { round: int(g.round, 1, 9999) || 1, called, winners, deck: [100, 120, 150].includes(g.deck) ? g.deck : 120, pattern, used: used.length ? used : [pattern] };
+  return { round: int(g.round, 1, 9999) || 1, called, winners, deck: [100, 120, 150, 155].includes(g.deck) ? g.deck : 120, pattern, used: used.length ? used : [pattern] };
 }
 function cleanMarks(m) {
   const cells = [];
@@ -188,7 +188,7 @@ async function act(db, m, env) {
       for (let t = 0; !no && t < 8; t++) {
         const pick = await db.prepare(`WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < ${MAX_CARDS})
           SELECT x FROM n WHERE x NOT IN (SELECT no FROM cards) ORDER BY random() LIMIT 1`).first();
-        if (!pick) fail("full", "All 150 cards are taken.");
+        if (!pick) fail("full", `All ${MAX_CARDS} cards are taken.`);
         await db.prepare("INSERT INTO cards(no, owner, name, at) VALUES (?, ?, ?, ?) ON CONFLICT(no) DO NOTHING").bind(pick.x, uid, name, Date.now()).run();
         const own = await db.prepare("SELECT owner FROM cards WHERE no = ?").bind(pick.x).first();
         if (own && own.owner === uid) no = pick.x;
