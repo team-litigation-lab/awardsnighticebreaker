@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "awardsnighticebreaker",
+  "main": "worker.js",
+  "compatibility_date": "2025-11-01",
+  "keep_vars": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/", "/index.html", "/api/*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "awardsnighticebreaker", "database_id": "1136d7d9-40c6-4646-9400-d68dfb07ea79" }
+  ],
+  "observability": { "enabled": true }
+}
