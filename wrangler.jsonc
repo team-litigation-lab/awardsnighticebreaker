@@ -1,13 +1,13 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  // VA Life Bingo: the Worker serves public/ and keeps the live game in D1.
+  // (No Durable Object: the account is at its 500 Durable Object namespace limit.)
   "name": "awardsnighticebreaker",
   "main": "worker.js",
-  "compatibility_date": "2025-11-01",
-  "keep_vars": true,
+  "compatibility_date": "2025-09-15",
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/", "/index.html", "/api/*"]
+    "run_worker_first": true
   },
   "d1_databases": [
     { "binding": "DB", "database_name": "awardsnighticebreaker", "database_id": "1136d7d9-40c6-4646-9400-d68dfb07ea79" }
